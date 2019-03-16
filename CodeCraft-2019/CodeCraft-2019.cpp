@@ -13,7 +13,7 @@ using namespace std;
 extern int Scheduler(vector<Car *>& cars);
 
 vector<Car *> cars;
-uint32_t time = 1;
+uint32_t turntime = 1;
 
 
 void readCar(string file);
@@ -45,19 +45,19 @@ int main(int argc, char *argv[])
 
 	do
 	{
-		int nextCross;
+		int nextRoad;
 		Scheduler(cars);
-		for(uint32_t i=0; i<Car::numALL; ++i)
+		for(int i=0; i<Car::numALL; ++i)
 		{
 			if(cars[i]->getStatus() == isRuning)
 			{
-				nextCross = cars[i]->searchPath(map);
-				cars[i]->updataCurCross(nextCross);
+				nextRoad = cars[i]->searchPath(map);
+				cars[i]->updataCurCross(nextRoad);
 			}
 		}
-		++time;
-		cout<<"time:"<<time<<endl;
-		cout<<"numRuning:"<<Car::numRuning<<endl;
+		++turntime;
+		// cout<<"turntime:"<<turntime<<endl;
+		// cout<<"numRuning:"<<Car::numRuning<<endl;
 	}while(Car::numRuning != 0 || Car::numStop !=0);
 
 	writeAnswer(answerPath, cars);
@@ -78,6 +78,8 @@ void writeAnswer(string file, vector<Car *>& cars)
 	ofstream outfile; 
     outfile.open(file.data());   //将文件流对象与文件连接起来 
     assert(outfile.is_open());   //若失败,则输出错误消息,并终止程序运行
+	outfile << "#(carId,StartTime,RoadId...)";
+	outfile << "\n";
     for (int i=0; i<Car::numALL; ++i )
     {
         Car* p = cars[i];

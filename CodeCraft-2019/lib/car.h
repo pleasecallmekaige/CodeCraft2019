@@ -27,7 +27,7 @@ public:
         turnto(isForward),
         status(isStop)
         {
-            answerPath.push_back(from);
+            //answerPath.push_back(from);
         }
     Car(uint32_t _id, int8_t _from, int8_t _to, int8_t _maxSpeed, uint32_t _planeTime)
        :id(_id),
@@ -76,15 +76,15 @@ public:
 
 
     /*还未启动的车数量，当*/
-    static uint32_t numStop;
+    static int numStop;
 
     /*已经上路的车数量*/
-    static uint32_t numRuning;
+    static int numRuning;
 
     /*已经到达目的地车数量*/
-    static uint32_t numEnd;
+    static int numEnd;
 
-    static uint32_t numALL;
+    static int numALL;
 
     uint32_t id;
     int16_t from;
@@ -103,7 +103,7 @@ private:
     RUNSTATUS status;/*车的状态*/
 
     // int8_t curSpeed;/*车的当前速度*/
-    // int atRoad;/*当前处于那条road*/
+     int atRoad;/*当前处于那条road*/
     // int8_t atChannel;/*当前处于哪条channel*/
     // int atCross[2];/*当前处于那个cross*/
 
