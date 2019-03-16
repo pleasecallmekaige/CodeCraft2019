@@ -25,7 +25,7 @@ rm -fr build
 mkdir build
 cd build
 
-cmake -G "Unix Makefiles" ../CodeCraft-2019
+cmake ../CodeCraft-2019
 tmp=$?
 echo "cmake return:" ${tmp}
 if [ ${tmp} -ne 0 ]
