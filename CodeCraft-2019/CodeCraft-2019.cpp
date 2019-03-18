@@ -6,17 +6,20 @@
 #include <cassert> 
 #include <vector>
 
-#include <car.h>
-#include <map.h>
+#include "car.h"
+#include "map.h"
+#include "cross.h"
 
 using namespace std;
-extern int Scheduler(vector<Car *>& cars);
+//extern int Scheduler(vector<Car *>& cars);
 
 vector<Car *> cars;
+vector<Cross *> crosses;
 uint32_t turntime = 1;
 
 
-void readCar(string file);
+void initCar(string file);
+void initCross(Map &map);
 void writeAnswer(string file, vector<Car *>& cars);
 
 
@@ -38,7 +41,7 @@ int main(int argc, char *argv[])
 	// std::cout << "crossPath is " << crossPath << std::endl;
 	// std::cout << "answerPath is " << answerPath << std::endl;
 
-	readCar(carPath);	
+	initCar(carPath);	
 	Car::numALL = cars.size();
 	Car::numStop = Car::numALL;//所有未启动的车
 	Map map(roadPath,crossPath);
@@ -46,7 +49,7 @@ int main(int argc, char *argv[])
 	do
 	{
 		int nextRoad;
-		Scheduler(cars);
+		Car::Scheduler(cars);
 		for(int i=0; i<Car::numALL; ++i)
 		{
 			if(cars[i]->getStatus() == isRuning)
@@ -117,5 +120,10 @@ void readCar(string file)
 		cars.push_back(new Car(res));
     }
     infile.close();             //关闭文件输入流 
+}
+
+void initCar(string file)
+{
+	readCar(file);
 }
 

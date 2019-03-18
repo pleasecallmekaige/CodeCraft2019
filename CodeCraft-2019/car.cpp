@@ -60,7 +60,7 @@ void Car::updataCurCross(int nextCross)
         setStatusEnd();
 }
 
-void Scheduler(vector<Car *>& cars)
+void Car::Scheduler(vector<Car *>& cars)
 {
     static uint32_t j = 1;
     for (int i=0; i<Car::numALL; ++i )

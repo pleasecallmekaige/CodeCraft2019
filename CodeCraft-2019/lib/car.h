@@ -98,15 +98,19 @@ public:
 private:
 
     int16_t curCross;
+    int16_t nextCross;
     /*下个路口的左右拐*/
     TURN turnto;
     RUNSTATUS status;/*车的状态*/
 
-    // int8_t curSpeed;/*车的当前速度*/
-     int atRoad;/*当前处于那条road*/
-    // int8_t atChannel;/*当前处于哪条channel*/
+    int8_t curSpeed;/*车的当前速度*/
+    int atRoad;/*当前处于哪条road*/
+    int8_t atChannel;/*当前处于哪条channel*/
+    int16_t distanceToCross;/*当前距离Cross的距离*/
     // int atCross[2];/*当前处于那个cross*/
 
 
 };
+
+
 #endif
