@@ -13,8 +13,6 @@
 using namespace std;
 //extern int Scheduler(vector<Car *>& cars);
 
-vector<Car *> cars;
-vector<Cross *> crosses;
 uint32_t turntime = 1;
 
 
@@ -41,29 +39,22 @@ int main(int argc, char *argv[])
 	// std::cout << "crossPath is " << crossPath << std::endl;
 	// std::cout << "answerPath is " << answerPath << std::endl;
 
-	initCar(carPath);	
-	Car::numALL = cars.size();
+	Car::initCars(carPath);	
+	Car::numALL = Car::cars.size();
 	Car::numStop = Car::numALL;//所有未启动的车
 	Map map(roadPath,crossPath);
+	Cross::initCrosses(map);
 
 	do
 	{
-		int nextRoad;
-		Car::Scheduler(cars);
-		for(int i=0; i<Car::numALL; ++i)
-		{
-			if(cars[i]->getStatus() == isRuning)
-			{
-				nextRoad = cars[i]->searchPath(map);
-				cars[i]->updataCurCross(nextRoad);
-			}
-		}
+		Car::Scheduler(map);
+
 		++turntime;
 		// cout<<"turntime:"<<turntime<<endl;
 		// cout<<"numRuning:"<<Car::numRuning<<endl;
 	}while(Car::numRuning != 0 || Car::numStop !=0);
 
-	writeAnswer(answerPath, cars);
+	writeAnswer(answerPath, Car::cars);
 
 
 
@@ -86,11 +77,11 @@ void writeAnswer(string file, vector<Car *>& cars)
     for (int i=0; i<Car::numALL; ++i )
     {
         Car* p = cars[i];
-		outfile << "("<<p->id<< ", " <<p->startTime;
-		int n = p->answerPath.size();
+		outfile << "("<<p->_id<< ", " <<p->_startTime;
+		int n = p->_answerPath.size();
 		for(int i=0; i<n; ++i)
 		{
-			outfile << ", " << p->answerPath[i];
+			outfile << ", " << p->_answerPath[i];
 		}
 		outfile << ")";
 		outfile << "\n";
@@ -98,32 +89,5 @@ void writeAnswer(string file, vector<Car *>& cars)
 	outfile.close();
 }
 
-/*读入car.txt文件*/
-void readCar(string file)
-{
-    ifstream infile; 
-    infile.open(file.data());   //将文件流对象与文件连接起来 
-    assert(infile.is_open());   //若失败,则输出错误消息,并终止程序运行 
-	int result;
-    string s;
-	string t;
-	getline(infile,s);  //#
-    while(getline(infile,s))
-    {
-		stringstream input(s.substr(1,s.length()-2));
-		vector<int> res;
-		while(input>>result){
-			input>>t;
-			res.push_back(result);
-		}
-		//car * tmp = new car((uint32_t)res[0],(int8_t)res[1],(int8_t)res[2],(int8_t)res[3],(uint32_t)res[4]);
-		cars.push_back(new Car(res));
-    }
-    infile.close();             //关闭文件输入流 
-}
 
-void initCar(string file)
-{
-	readCar(file);
-}
 
