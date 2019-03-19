@@ -79,6 +79,6 @@ int8_t Cross::outputCar()
             _outToRoad[i].outQueue.push(_outToRoad[i].startQueue.front());
             _outToRoad[i].startQueue.pop();
         }
-        p->addCarToRoad(_outToRoad[i].outQueue); 
+        p->addCarsToRoad(_outToRoad[i].outQueue); 
     }
 }
