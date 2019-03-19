@@ -25,7 +25,7 @@ public:
 
     void addCarToRoad(uint32_t carId, int lane); //将车加入道路上
 
-    void addCarsToRoad(std::queue<Car*> waiting_cars);//将路口传来的车加到当前道路上；
+    void addCarsToRoad(std::queue<Car*>& waiting_cars);//将路口传来的车加到当前道路上；
 
     bool isFullLane(int lane); //判断当前道路线上是否能再放车；
 

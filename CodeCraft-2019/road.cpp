@@ -32,11 +32,11 @@ void Road::processCarInRoad(Map & map) {
                 Car* car = Car::cars[carsInRoadFromTo[i][j] - CAR_INDEX];
                 if (car->_curSpeed > car->_distanceToCross) {
                     //车即将驶出当前road，交给路口处理
-                    int next_cross = car->searchPath(map);
+                    car->_nextCross = car->searchPath(map);
                     switch (car->_turnto) {
-                        case isLeft:Cross::crosses[next_cross]->_outToRoad[_id].LQueue.push(car); break;
-                        case isRight:Cross::crosses[next_cross]->_outToRoad[_id].RQueue.push(car); break;
-                        case isForward:Cross::crosses[next_cross]->_outToRoad[_id].DQueue.push(car); break;
+                        case isLeft:Cross::crosses[car->_nextCross]->_outToRoad[_id].LQueue.push(car); break;
+                        case isRight:Cross::crosses[car->_nextCross]->_outToRoad[_id].RQueue.push(car); break;
+                        case isForward:Cross::crosses[car->_nextCross]->_outToRoad[_id].DQueue.push(car); break;
                         default:
                             break;
                     }
@@ -56,11 +56,11 @@ void Road::processCarInRoad(Map & map) {
                 Car* car = Car::cars[carsInRoadToFrom[i][j] - CAR_INDEX];
                 if (car->_curSpeed > car->_distanceToCross) {
                     //车即将驶出当前road，交给路口处理
-                    int next_cross = car->searchPath(map);
+                    car->_nextCross = car->searchPath(map);
                     switch (car->_turnto) {
-                    case isLeft:Cross::crosses[next_cross]->_outToRoad[_id].LQueue.push(car); break;
-                    case isRight:Cross::crosses[next_cross]->_outToRoad[_id].RQueue.push(car); break;
-                    case isForward:Cross::crosses[next_cross]->_outToRoad[_id].DQueue.push(car); break;
+                    case isLeft:Cross::crosses[car->_nextCross]->_outToRoad[_id].LQueue.push(car); break;
+                    case isRight:Cross::crosses[car->_nextCross]->_outToRoad[_id].RQueue.push(car); break;
+                    case isForward:Cross::crosses[car->_nextCross]->_outToRoad[_id].DQueue.push(car); break;
                     default:
                         break;
                     }
@@ -88,7 +88,7 @@ void Road::addCarToRoad(uint32_t carId, int lane) {
         
 }
 
-void Road::addCarsToRoad(std::queue<Car*> waiting_cars) {
+void Road::addCarsToRoad(std::queue<Car*>& waiting_cars) {
     while (!waiting_cars.empty()) {
         Car *car = waiting_cars.front();
         waiting_cars.pop();
