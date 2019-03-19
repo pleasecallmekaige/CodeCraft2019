@@ -2,16 +2,17 @@
 (路口id,道路id,道路id,道路id,道路id)
  */
 #include "cross.h"
+#include "road.h"
 
 vector<Cross *> Cross::crosses;
 
 Cross::Cross(vector<int>& oneCross)
-   :id(oneCross[0])
+   :_id(oneCross[0])
 {
-    outToRoad[0].roadId = oneCross[1];
-    outToRoad[1].roadId = oneCross[2];
-    outToRoad[2].roadId = oneCross[3];
-    outToRoad[3].roadId = oneCross[4];
+    _outToRoad[0].roadId = oneCross[1];
+    _outToRoad[1].roadId = oneCross[2];
+    _outToRoad[2].roadId = oneCross[3];
+    _outToRoad[3].roadId = oneCross[4];
 }
 
 /*static function*/
@@ -30,15 +31,54 @@ int8_t Cross::processStartCar(Map &map, Car* car)
     car->_curCross = car->_nextCross;
     car->_nextCross = car->searchPath(map);//_nextRoad已经更新为要出发的road  _toturn
 
-    if(car->_nextRoad == outToRoad[0].roadId)
-        outToRoad[0].startQueue.push(car);
-    else if(car->_nextRoad == outToRoad[1].roadId)
-        outToRoad[1].startQueue.push(car);
-    else if(car->_nextRoad == outToRoad[2].roadId)
-        outToRoad[2].startQueue.push(car);
-    else if(car->_nextRoad == outToRoad[3].roadId)
-        outToRoad[3].startQueue.push(car);
+    if(car->_nextRoad == _outToRoad[0].roadId)
+        _outToRoad[0].startQueue.push(car);
+    else if(car->_nextRoad == _outToRoad[1].roadId)
+        _outToRoad[1].startQueue.push(car);
+    else if(car->_nextRoad == _outToRoad[2].roadId)
+        _outToRoad[2].startQueue.push(car);
+    else if(car->_nextRoad == _outToRoad[3].roadId)
+        _outToRoad[3].startQueue.push(car);
     else
         return -1;//表示没有找到路返回失败
     return 1;
+}
+
+int8_t inputCar(Map &map, Car* car)
+{
+    
+}
+
+int8_t Cross::outputCar()
+{
+    for(int i = 0; i<4; +i)
+    {
+        Road *p = Road::roads[_outToRoad[i].roadId - ROAD_INDEX];
+        int16_t lenToCross = 0;
+        while(!_outToRoad[i].DQueue.empty() || !_outToRoad[i].LQueue.empty() || !_outToRoad[i].RQueue.empty())
+        {
+            while(!_outToRoad[i].DQueue.empty() &&  _outToRoad[i].DQueue.front()->_distanceToCross == lenToCross)//DQueue中第一排的
+            {
+                _outToRoad[i].outQueue.push(_outToRoad[i].DQueue.front());//先调度直走的第一排的车辆
+                _outToRoad[i].DQueue.pop();
+            }
+            while(!_outToRoad[i].LQueue.empty() &&  _outToRoad[i].LQueue.front()->_distanceToCross == lenToCross)//LQueue中第一排的
+            {
+                _outToRoad[i].outQueue.push(_outToRoad[i].LQueue.front());//调度左拐的第一排的车辆
+                _outToRoad[i].LQueue.pop();
+            }
+            while(!_outToRoad[i].RQueue.empty() &&  _outToRoad[i].RQueue.front()->_distanceToCross == lenToCross)//RQueue中第一排的
+            {
+                _outToRoad[i].outQueue.push(_outToRoad[i].RQueue.front());//调度右拐的第一排的车辆
+                _outToRoad[i].RQueue.pop();
+            }
+            ++lenToCross;
+        }
+        while(!_outToRoad[i].outQueue.empty())
+        {
+            _outToRoad[i].outQueue.push(_outToRoad[i].startQueue.front());
+            _outToRoad[i].startQueue.pop();
+        }
+        p->addCarToRoad(_outToRoad[i].outQueue); 
+    }
 }

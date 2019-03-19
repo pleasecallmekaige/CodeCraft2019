@@ -30,9 +30,9 @@ public:
     /*Cross的构造函数*/
     Cross(vector<int>& oneCross);
 
-    int id;
+    int _id;
 
-    CrossToRoad outToRoad[4];
+    CrossToRoad _outToRoad[4];
     //int roadId[4];
 
     /*所有的路口*/
@@ -42,6 +42,10 @@ public:
     static void initCrosses(Map &map);
 
     int8_t processStartCar(Map &map, Car* car);
+
+    int8_t inputCar(Map &map, Car* car);
+
+    int8_t outputCar();
     
 private:
 

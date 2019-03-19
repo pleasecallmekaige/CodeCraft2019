@@ -9,6 +9,7 @@
 #include "car.h"
 #include "map.h"
 #include "cross.h"
+#include "road.h"
 
 using namespace std;
 //extern int Scheduler(vector<Car *>& cars);
@@ -44,10 +45,14 @@ int main(int argc, char *argv[])
 	Car::numStop = Car::numALL;//所有未启动的车
 	Map map(roadPath,crossPath);
 	Cross::initCrosses(map);
+	Road::initRoads(map);
 
 	do
 	{
-		Car::Scheduler(map);
+		Car::Scheduler(map);//启动车辆加到路口
+		/*路上的车辆加入cross*/
+		/*路口处理车辆*/
+		/*路口的车辆出来到路上*/	
 
 		++turntime;
 		// cout<<"turntime:"<<turntime<<endl;
