@@ -17,8 +17,8 @@ using namespace std;
 uint32_t turntime = 1;
 
 
-void initCar(string file);
-void initCross(Map &map);
+// void initCar(string file);
+// void initCross(Map &map);
 void writeAnswer(string file, vector<Car *>& cars);
 
 

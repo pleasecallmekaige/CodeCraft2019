@@ -41,9 +41,9 @@ public:
     /*static function*/
     static void initCrosses(Map &map);
 
-    int8_t processStartCar(Map &map, Car* car);
+    bool addCarToQueue(Car *car);
 
-    int8_t inputCar(Map &map, Car* car);
+    int8_t processStartCar(Map &map, Car* car);
 
     int8_t outputCar();
     

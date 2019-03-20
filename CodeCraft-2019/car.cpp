@@ -83,7 +83,8 @@ int Car::searchPath(Map &map)
     for(size_t i = 0u; i<nextCross.size(); ++i)
     {
         int tmp = map.map[nextCross[i]][_to]; 
-        if(tmp < distance && nextCross[i] != _preCross) {//出现距离更小的路，且没有掉头返回上一个路口（车辆不允许掉头）
+        if(tmp < distance && nextCross[i] != _preCross) 
+        {//出现距离更小的路，且没有掉头返回上一个路口（车辆不允许掉头）
             distance = tmp;
             resCross = nextCross[i];
             resRoad = trueNextRoad[i];
@@ -122,18 +123,7 @@ void Car::updataRoad(int nextCross)
 /*static function*/
 void Car::Scheduler(Map &map)
 {
-    // static uint32_t j = 1;
-    // for (int i=0; i<Car::numALL; ++i )
-    // {
-    //     Car* p = cars[i];
-    //     if(p->planeTime == j && p->getStatus() == isStop && Car::numRuning <100)
-    //     {
-    //         p->setStatusRuning();
-    //         p->setStartTime(turntime);
-    //     }
-    // }
-    // if(Car::numRuning < 10)++j;
-    for (int i=0; i<Car::numALL; ++i )
+    for (int i=0; i<Car::numALL; ++i )//把启动车辆加入入口
     {
         Car* p = cars[i];
         if(p->_startTime == turntime && p->getStatus() == isStop && Car::numRuning <100)//调度车辆启动
@@ -143,12 +133,12 @@ void Car::Scheduler(Map &map)
             Cross::crosses[p->_from - CROSS_INDEX]->processStartCar(map, p);
             //Car::cars[i]->searchPath(map);
         }
-        if(p->getStatus() == isRuning)//调度路上的车进入cross
-        {
-
-        }
     }
-    for (int i=0; i<Cross::crosses.size(); ++i )//调度所有路口
+    for(size_t i=0u; i<Road::roads.size(); ++i)//调度路上的车进入cross
+    {
+        Road::roads[i]->processCarInRoad(map);
+    }
+    for (size_t i=0u; i<Cross::crosses.size(); ++i )//调度所有路口
     {
         Cross::crosses[i]->outputCar();
     }

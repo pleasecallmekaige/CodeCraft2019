@@ -37,7 +37,7 @@ public:
     /*车辆根据地图自己搜索下一个路径
     输入：起始地点和终点以及地图
     输出：下一个cross的id
-    更新了_nextRoad _toturn
+    更新了_nextRoad _turnto
     */
     int searchPath(Map &map);
 
@@ -69,6 +69,11 @@ public:
     {
         _startTime = turntime;
     }
+
+    // Road* getNextRoad()
+    // {
+    //     return Road::roads[_nextRoad-ROAD_INDEX];
+    // }
 
     static void readCars(string file);
 

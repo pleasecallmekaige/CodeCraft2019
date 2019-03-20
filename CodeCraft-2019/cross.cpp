@@ -25,6 +25,57 @@ void Cross::initCrosses(Map &map)
     }
 }
 
+bool Cross::addCarToQueue(Car *car)
+{
+    if(car->_nextRoad == _outToRoad[0].roadId)
+    {
+        switch(car->_turnto)
+        {
+            case isForward: _outToRoad[0].DQueue.push(car);  break;
+            case isLeft:    _outToRoad[0].LQueue.push(car);  break;
+            case isRight:   _outToRoad[0].RQueue.push(car);  break;
+            default:
+                break;
+        }
+    }
+    else if(car->_nextRoad == _outToRoad[1].roadId)
+    {
+        switch(car->_turnto)
+        {
+            case isForward: _outToRoad[1].DQueue.push(car);  break;
+            case isLeft:    _outToRoad[1].LQueue.push(car);  break;
+            case isRight:   _outToRoad[1].RQueue.push(car);  break;
+            default:
+                break;
+        }
+    }
+    else if(car->_nextRoad == _outToRoad[2].roadId)
+     {
+        switch(car->_turnto)
+        {
+            case isForward: _outToRoad[2].DQueue.push(car);  break;
+            case isLeft:    _outToRoad[2].LQueue.push(car);  break;
+            case isRight:   _outToRoad[2].RQueue.push(car);  break;
+            default:
+                break;
+        }
+    }
+    else if(car->_nextRoad == _outToRoad[3].roadId)
+    {
+        switch(car->_turnto)
+        {
+            case isForward: _outToRoad[3].DQueue.push(car);  break;
+            case isLeft:    _outToRoad[3].LQueue.push(car);  break;
+            case isRight:   _outToRoad[3].RQueue.push(car);  break;
+            default:
+                break;
+        }
+    }
+    else
+        return false;//表示没有找到路返回失败
+    return true;
+}
+
 int8_t Cross::processStartCar(Map &map, Car* car)
 {
     car->_preCross = car->_curCross;
@@ -44,14 +95,10 @@ int8_t Cross::processStartCar(Map &map, Car* car)
     return 1;
 }
 
-int8_t inputCar(Map &map, Car* car)
-{
-    
-}
 
 int8_t Cross::outputCar()
 {
-    for(int i = 0; i<4; +i)
+    for(int i = 0; i<4; ++i)
     {
         Road *p = Road::roads[_outToRoad[i].roadId - ROAD_INDEX];
         int16_t lenToCross = 0;
@@ -74,11 +121,12 @@ int8_t Cross::outputCar()
             }
             ++lenToCross;
         }
-        while(!_outToRoad[i].outQueue.empty())
+        while(!_outToRoad[i].startQueue.empty())
         {
             _outToRoad[i].outQueue.push(_outToRoad[i].startQueue.front());
             _outToRoad[i].startQueue.pop();
         }
-        p->addCarsToRoad(_outToRoad[i].outQueue); 
+        p->addCarsToRoad(_outToRoad[i].outQueue); //把入口内的车输出到对应的road上
     }
+    return 0;
 }
