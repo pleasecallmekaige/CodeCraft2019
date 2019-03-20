@@ -45,7 +45,7 @@ public:
 
     int8_t processStartCar(Map &map, Car* car);
 
-    int8_t outputCar();
+    int8_t outputCarToRoad();
     
 private:
 

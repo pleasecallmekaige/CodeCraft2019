@@ -53,10 +53,8 @@ int main(int argc, char *argv[])
 		/*路上的车辆加入cross*/
 		/*路口处理车辆*/
 		/*路口的车辆出来到路上*/	
-
+		cout<<"turntime:"<<turntime<<"  "<<"numRuning:"<<Car::numRuning<<"  "<<"numStop:"<<Car::numStop<<"  "<<"numEnd:"<<Car::numEnd<<endl;
 		++turntime;
-		// cout<<"turntime:"<<turntime<<endl;
-		// cout<<"numRuning:"<<Car::numRuning<<endl;
 	}while(Car::numRuning != 0 || Car::numStop !=0);
 
 	writeAnswer(answerPath, Car::cars);

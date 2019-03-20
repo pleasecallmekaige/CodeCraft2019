@@ -18,15 +18,7 @@ Road::Road(vector<int>& oneRoad)
     _isDuplex(oneRoad[6])
     {
         carsInRoadFromTo.resize(_channel);
-        // for(int i = 0; i<_channel; ++i)
-        // {
-        //     carsInRoadFromTo[i].resize(_length);
-        // }
         carsInRoadToFrom.resize(_channel);
-        // for(int i = 0; i<_channel; ++i)
-        // {
-        //     carsInRoadToFrom[i].resize(_length);
-        // }
     }
 
 void Road::initRoads(Map & map) 
@@ -38,81 +30,103 @@ void Road::initRoads(Map & map)
     }
 }
 
-void Road::processCarInRoad(Map & map) {
+void Road::processCarInRoad(Map & map) //还没考虑拐不过去的情况
+{
     //先处理正向行驶的车
-    for (int i = 0; i < _channel; ++i) {//从第一条车道开始处理
-        int len = carsInRoadFromTo[i].size();//该车道上正在行驶的车辆数
-        vector<int> erase_car;//保存要驶出的车的在该车道上的index
-        for (int j = 0; j < len; ++j) {
-            Car* car = carsInRoadFromTo[i][j];
-            if (car->_curSpeed > car->_distanceToCross) {
-                //车即将驶出当前road，交给路口处理
-                car->_nextCross = car->searchPath(map);
-                int dif =roads[car->_nextRoad - ROAD_INDEX]->_limitSpeed - car->_distanceToCross;
-                if (dif <= 0)//根据任务书中10.8-(5)Table1中的计算规则，车可能会被退回
+    for (int row = 0; row < _length; ++row)
+    {//从第一列开始处理
+        for (int lane = 0; lane < _channel; ++lane)
+        {
+            if(carsInRoadFromTo[lane].empty())continue;
+            Car* car = carsInRoadFromTo[lane][0];
+            if(car->_distanceToCross == row)
+            {
+                if(car->_curSpeed > car->_distanceToCross)//看当前行的第一个能否出去
                 {
-                    car->_distanceToCross = 0;
-                    for (j = j+1; j < len; ++j) 
-                    {//后面的车均不能通过路口
-                        Car* car_j = carsInRoadFromTo[i][j];
-                        car_j->_distanceToCross -= car_j->_curSpeed;//后面的车不能超过前面的车
-                        if (car_j->_distanceToCross <= carsInRoadFromTo[i][j - 1]->_distanceToCross + 1)
-                        {
-                            car_j->_distanceToCross = carsInRoadFromTo[i][j - 1]->_distanceToCross + 1;
-                            car_j->_curSpeed = min(car_j->_curSpeed, carsInRoadFromTo[i][j - 1]->_curSpeed);
-                        }
+                    //车即将驶出当前road，交给路口处理
+                    car->_nextCross = car->searchPath(map);
+                    int dif = min(roads[car->_nextRoad - ROAD_INDEX]->_limitSpeed, car->_maxSpeed) - car->_distanceToCross;
+                    if (dif <= 0)//根据任务书中10.8-(5)Table1中的计算规则，车可能会被退回
+                    {
+                        car->_distanceToCross = 0;
+                    }
+                    else
+                    {
+                        /*把需要进入入口的车加入到队列中*/
+                        Cross::crosses[car->_curCross - CROSS_INDEX]->addCarToQueue(car);
+                        carsInRoadFromTo[lane].erase(carsInRoadFromTo[lane].begin());//删除第一个元素
                     }
                 }
-                /*把需要进入入口的车加入到队列中*/
-                Cross::crosses[car->_nextCross - CROSS_INDEX]->addCarToQueue(car);
-                erase_car.push_back(j);
-                //carsInRoadFromTo[i].erase(carsInRoadFromTo[i].begin()+j);//删去即将驶出该道路的车
-            }
-            else {
-                //车未行驶出当前road，更新车的信息,
-                car->_distanceToCross -= car->_curSpeed;//后面的车不能超过前面的车
-                if (j > 0 && car->_distanceToCross <= carsInRoadFromTo[i][j - 1]->_distanceToCross + 1)
-                    car->_distanceToCross = carsInRoadFromTo[i][j - 1]->_distanceToCross + 1;                
+                else//当前行的第一个不能出去跳出当前行
+                {
+                    continue;
+                }  
             }
         }
-        while (!erase_car.empty()) {
-            carsInRoadFromTo[i].erase(carsInRoadFromTo[i].begin() + erase_car.back());
-            erase_car.pop_back();
-        }
-            
     }
+    for(int i = 0; i<_channel; ++i)
+    {
+        if(carsInRoadFromTo[i].empty())continue;
+        if(carsInRoadFromTo[i][0]->_distanceToCross != 0)//出现下一个路过不去（根据任务书中10.8-(5)Table1中的计算规则）==0的情况就放第一个
+            carsInRoadFromTo[i][0]->_distanceToCross -= carsInRoadFromTo[i][0]->_curSpeed;
+        for(size_t j = 1u; j<carsInRoadFromTo[i].size(); ++j)
+        {
+            if(carsInRoadFromTo[i][j]->_distanceToCross != 0)
+            {
+                Car* car_j = carsInRoadFromTo[i][j];
+                car_j->_distanceToCross -= car_j->_curSpeed;
+                //后面的车不能超过前面的车
+                car_j->_distanceToCross = min(car_j->_distanceToCross, int16_t(carsInRoadFromTo[i][j-1]->_distanceToCross + 1));
+            }  
+        }
+    }
+
+
     if (!_isDuplex)
         return;
     //处理反向行驶的车
-    for (int i = 0; i < _channel; ++i) {//从第一条车道开始处理
-        int len = carsInRoadToFrom[i].size();//该车道上正在行驶的车辆数
-        vector<int> erase_car;//保存要驶出的车的在该车道上的index
-        for (int j = 0; j < len; ++j) {
-            Car* car = carsInRoadToFrom[i][j];
-            if (car->_curSpeed > car->_distanceToCross) {
-                //车即将驶出当前road，交给路口处理
-                car->_nextCross = car->searchPath(map);
-                int dif = roads[car->_nextRoad - ROAD_INDEX]->_limitSpeed - car->_distanceToCross;
-                if (dif <= 0)//根据任务书中10.8-(5)Table1中的计算规则
+    for (int row = 0; row < _length; ++row)
+    {//从第一列开始处理
+        for (int lane = 0; lane < _channel; ++lane)
+        {
+            if(carsInRoadToFrom[lane].empty())continue;
+            Car* car = carsInRoadToFrom[lane][0];
+            if(car->_distanceToCross == row)
+            {
+                if(car->_curSpeed > car->_distanceToCross)
                 {
-                    car->_distanceToCross = 0;
-                    continue;
+                    //车即将驶出当前road，交给路口处理
+                    car->_nextCross = car->searchPath(map);
+                    int dif = min(roads[car->_nextRoad - ROAD_INDEX]->_limitSpeed, car->_maxSpeed) - car->_distanceToCross;
+                    if (dif <= 0)//根据任务书中10.8-(5)Table1中的计算规则，车可能会被退回
+                    {
+                        car->_distanceToCross = 0;
+                    }
+                    else
+                    {
+                        /*把需要进入入口的车加入到队列中*/
+                        Cross::crosses[car->_curCross - CROSS_INDEX]->addCarToQueue(car);
+                        carsInRoadToFrom[lane].erase(carsInRoadToFrom[lane].begin());//删除第一个元素
+                    }
                 }
-                Cross::crosses[car->_nextCross - CROSS_INDEX]->addCarToQueue(car);
-                erase_car.push_back(j);
-                //carsInRoadToFrom[i].erase(carsInRoadToFrom[i].begin()+j);//删去即将驶出该道路的车
-            } else {
-                //车未行驶出当前road，更新车的信息,
-                car->_distanceToCross -= car->_curSpeed;//后面的车不能超过前面的车
-                if (j > 0 && car->_distanceToCross <= carsInRoadToFrom[i][j - 1]->_distanceToCross + 1)
-                    car->_distanceToCross = carsInRoadToFrom[i][j - 1]->_distanceToCross + 1;
             }
         }
-        while (!erase_car.empty()) {
-            carsInRoadToFrom[i].erase(carsInRoadToFrom[i].begin() + erase_car.back());
-            erase_car.pop_back();
+    }
+    for(int i = 0; i<_channel; ++i)
+    {
+        if(carsInRoadToFrom[i].empty())continue;
+        if(carsInRoadToFrom[i][0]->_distanceToCross != 0)//出现下一个路过不去（根据任务书中10.8-(5)Table1中的计算规则）==0的情况就放第一个
+            carsInRoadToFrom[i][0]->_distanceToCross -= carsInRoadToFrom[i][0]->_curSpeed;
+        for(size_t j = 1u; j<carsInRoadToFrom[i].size(); ++j)
+        {
+            if(carsInRoadToFrom[i][j]->_distanceToCross != 0)
+            {
+                Car* car_j = carsInRoadToFrom[i][j];
+                car_j->_distanceToCross -= car_j->_curSpeed;
+                //后面的车不能超过前面的车
+                car_j->_distanceToCross = min(car_j->_distanceToCross, int16_t(carsInRoadToFrom[i][j-1]->_distanceToCross + 1));
+            }  
         }
-
     }
 }
 
@@ -168,11 +182,10 @@ bool Road::addCarToRoad(Car* car, int lane)
     car->_curCross = car->_nextCross;
     car->_answerPath.push_back(_id);
     car->_curSpeed = min(car->_maxSpeed,_limitSpeed);
-    
     return true;
 }
 
-void Road::addCarsToRoad(queue<Car *> waiting_cars) {
+void Road::addCarsToRoad(queue<Car *>& waiting_cars) {
     int lane = 0;
     while (!waiting_cars.empty()) {
         Car *car = waiting_cars.front();
@@ -190,10 +203,19 @@ void Road::addCarsToRoad(queue<Car *> waiting_cars) {
             break;
     }
     while (!waiting_cars.empty()) {//将车退回原road上，并将到路口的距离设为0，等待下一次启动
-        // Car *car = waiting_cars.front();
-        // backCar(car->_id);
+        Car *car = waiting_cars.front();
         waiting_cars.pop();
-        cout<<"error"<<endl;
+        car->setStatusEnd();
+        if(-1==car->_atRoad)
+        {
+            // car->setStatusStop();
+            // car->_startTime = car->_startTime+1;
+        }
+        else
+        {
+            // system("pause");
+        }
+        
     }
 }
 

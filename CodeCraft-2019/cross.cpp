@@ -27,6 +27,11 @@ void Cross::initCrosses(Map &map)
 
 bool Cross::addCarToQueue(Car *car)
 {
+    if(car->_to == _id)
+    {
+        car->setStatusEnd();
+        return true;
+    }
     if(car->_nextRoad == _outToRoad[0].roadId)
     {
         switch(car->_turnto)
@@ -96,11 +101,12 @@ int8_t Cross::processStartCar(Map &map, Car* car)
 }
 
 
-int8_t Cross::outputCar()
+int8_t Cross::outputCarToRoad()
 {
     for(int i = 0; i<4; ++i)
     {
-        Road *p = Road::roads[_outToRoad[i].roadId - ROAD_INDEX];
+        if(_outToRoad[i].roadId == -1)continue;//把没有路的排除掉
+        Road *road = Road::roads[_outToRoad[i].roadId - ROAD_INDEX];
         int16_t lenToCross = 0;
         while(!_outToRoad[i].DQueue.empty() || !_outToRoad[i].LQueue.empty() || !_outToRoad[i].RQueue.empty())
         {
@@ -126,7 +132,8 @@ int8_t Cross::outputCar()
             _outToRoad[i].outQueue.push(_outToRoad[i].startQueue.front());
             _outToRoad[i].startQueue.pop();
         }
-        p->addCarsToRoad(_outToRoad[i].outQueue); //把入口内的车输出到对应的road上
+        assert(_outToRoad[i].DQueue.empty() && _outToRoad[i].LQueue.empty() && _outToRoad[i].RQueue.empty() && _outToRoad[i].startQueue.empty());
+        road->addCarsToRoad(_outToRoad[i].outQueue); //把入口内的车输出到对应的road上
     }
     return 0;
 }

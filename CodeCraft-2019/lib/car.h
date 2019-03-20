@@ -64,6 +64,13 @@ public:
         --numRuning;
         ++numEnd;
     }
+    void setStatusStop()//用于车子启动失败
+    {
+        assert(_status == isRuning);
+        _status = isStop;
+        --numRuning;
+        ++numStop;
+    }
 
     void setStartTime(uint32_t turntime)
     {

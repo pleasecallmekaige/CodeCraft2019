@@ -100,23 +100,23 @@ int Car::searchPath(Map &map)
 
 
 
-void Car::updataCross(int nextCross)
-{
-    _preCross = _curCross;
-    _curCross = nextCross;
-    _answerPath.push_back(_atRoad);
-    if(_curCross == _to)
-        setStatusEnd();
-}
+// void Car::updataCross(int nextCross)
+// {
+//     _preCross = _curCross;
+//     _curCross = nextCross;
+//     _answerPath.push_back(_atRoad);
+//     if(_curCross == _to)
+//         setStatusEnd();
+// }
 
-void Car::updataRoad(int nextCross)
-{ 
-    _preCross = _curCross;
-    _curCross = nextCross;
-    _answerPath.push_back(_atRoad);
-    if(_curCross == _to)
-        setStatusEnd();
-}
+// void Car::updataRoad(int nextCross)
+// { 
+//     _preCross = _curCross;
+//     _curCross = nextCross;
+//     _answerPath.push_back(_atRoad);
+//     if(_curCross == _to)
+//         setStatusEnd();
+// }
 
 
 
@@ -126,7 +126,7 @@ void Car::Scheduler(Map &map)
     for (int i=0; i<Car::numALL; ++i )//把启动车辆加入入口
     {
         Car* p = cars[i];
-        if(p->_startTime == turntime && p->getStatus() == isStop && Car::numRuning <100)//调度车辆启动
+        if(p->_startTime == turntime && p->getStatus() == isStop)//调度车辆启动 && Car::numRuning <100
         {
             p->setStatusRuning();
             p->setStartTime(turntime);
@@ -136,16 +136,12 @@ void Car::Scheduler(Map &map)
     }
     for(size_t i=0u; i<Road::roads.size(); ++i)//调度路上的车进入cross
     {
-        Road::roads[i]->processCarInRoad(map);
+        Road::roads[i]->processCarInRoad(map);//进入入口后判断是否到达终点
     }
     for (size_t i=0u; i<Cross::crosses.size(); ++i )//调度所有路口
     {
-        Cross::crosses[i]->outputCar();
+        Cross::crosses[i]->outputCarToRoad();//车辆从路口出来
     }
-    // for (int i=0; i<Road.num; ++i )//调度车从cross里出来
-    // {
-
-    // }
 }
 //100 10
 

@@ -30,7 +30,7 @@ public:
 
     bool addCarToRoad(Car* car, int lane); //将车加入道路上
 
-    void addCarsToRoad(queue<Car *> waiting_cars); //将路口传来的车加到当前道路上；
+    void addCarsToRoad(queue<Car *> &waiting_cars); //将路口传来的车加到当前道路上；
 
     void backCar(uint32_t car_id);//将车退回来的road
 
