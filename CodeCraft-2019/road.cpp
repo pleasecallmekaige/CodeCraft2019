@@ -57,10 +57,6 @@ void Road::processCarInRoad(Map & map) //还没考虑拐不过去的情况
                         carsInRoadFromTo[lane].erase(carsInRoadFromTo[lane].begin());//删除第一个元素
                     }
                 }
-                else//当前行的第一个不能出去跳出当前行
-                {
-                    continue;
-                }  
             }
         }
     }
@@ -71,13 +67,10 @@ void Road::processCarInRoad(Map & map) //还没考虑拐不过去的情况
             carsInRoadFromTo[i][0]->_distanceToCross -= carsInRoadFromTo[i][0]->_curSpeed;
         for(size_t j = 1u; j<carsInRoadFromTo[i].size(); ++j)
         {
-            if(carsInRoadFromTo[i][j]->_distanceToCross != 0)
-            {
-                Car* car_j = carsInRoadFromTo[i][j];
-                car_j->_distanceToCross -= car_j->_curSpeed;
-                //后面的车不能超过前面的车
-                car_j->_distanceToCross = min(car_j->_distanceToCross, int16_t(carsInRoadFromTo[i][j-1]->_distanceToCross + 1));
-            }  
+            Car* car_j = carsInRoadFromTo[i][j];
+            car_j->_distanceToCross -= car_j->_curSpeed;
+            //后面的车不能超过前面的车
+            car_j->_distanceToCross = max(car_j->_distanceToCross, int16_t(carsInRoadFromTo[i][j-1]->_distanceToCross + 1));
         }
     }
 
@@ -119,13 +112,10 @@ void Road::processCarInRoad(Map & map) //还没考虑拐不过去的情况
             carsInRoadToFrom[i][0]->_distanceToCross -= carsInRoadToFrom[i][0]->_curSpeed;
         for(size_t j = 1u; j<carsInRoadToFrom[i].size(); ++j)
         {
-            if(carsInRoadToFrom[i][j]->_distanceToCross != 0)
-            {
-                Car* car_j = carsInRoadToFrom[i][j];
-                car_j->_distanceToCross -= car_j->_curSpeed;
-                //后面的车不能超过前面的车
-                car_j->_distanceToCross = min(car_j->_distanceToCross, int16_t(carsInRoadToFrom[i][j-1]->_distanceToCross + 1));
-            }  
+            Car* car_j = carsInRoadToFrom[i][j];
+            car_j->_distanceToCross -= car_j->_curSpeed;
+            //后面的车不能超过前面的车
+            car_j->_distanceToCross = max(car_j->_distanceToCross, int16_t(carsInRoadToFrom[i][j-1]->_distanceToCross + 1));
         }
     }
 }
@@ -205,17 +195,19 @@ void Road::addCarsToRoad(queue<Car *>& waiting_cars) {
     while (!waiting_cars.empty()) {//将车退回原road上，并将到路口的距离设为0，等待下一次启动
         Car *car = waiting_cars.front();
         waiting_cars.pop();
-        car->setStatusEnd();
+        //car->setStatusEnd();
+        //cout<<car->_startTime <<endl;
         if(-1==car->_atRoad)
         {
-            // car->setStatusStop();
-            // car->_startTime = car->_startTime+1;
+            //car->setStatusEnd();
+            car->setStatusStop();
+            car->_startTime = car->_startTime+5;
         }
         else
         {
+            car->setStatusEnd();
             // system("pause");
         }
-        
     }
 }
 

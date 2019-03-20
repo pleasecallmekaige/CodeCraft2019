@@ -129,7 +129,7 @@ void Car::Scheduler(Map &map)
         if(p->_startTime == turntime && p->getStatus() == isStop)//调度车辆启动 && Car::numRuning <100
         {
             p->setStatusRuning();
-            p->setStartTime(turntime);
+            //p->setStartTime(turntime);
             Cross::crosses[p->_from - CROSS_INDEX]->processStartCar(map, p);
             //Car::cars[i]->searchPath(map);
         }
