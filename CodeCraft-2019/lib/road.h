@@ -23,6 +23,18 @@ public:
     /*所有道路*/
     static vector<Road *> roads;
 
+    static int numOfCarInRoads;
+
+    void addnumOfCarinRoads()
+    {
+        ++numOfCarInRoads;
+    }
+
+    void outnumOfCarinRoads()
+    {
+        --numOfCarInRoads;
+    }
+
     /*static function*/
     static void initRoads(Map &map);
 

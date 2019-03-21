@@ -1,11 +1,14 @@
 #include "road.h"
 #include "cross.h"
 
+int deadCarnum = 0;
+
 /*
 (道路id，道路长度，最高限速，车道数目，起始点id，终点id，是否双向)
  */
 
 vector<Road *> Road::roads;
+int Road::numOfCarInRoads = 0;
 
 Road::Road(vector<int>& oneRoad)
     :_id(oneRoad[0]),
@@ -43,6 +46,13 @@ void Road::processCarInRoad(Map & map) //还没考虑拐不过去的情况
             {
                 if(car->_curSpeed > car->_distanceToCross)//看当前行的第一个能否出去
                 {
+                    if(Cross::crosses[car->_curCross - CROSS_INDEX]->_id == car->_to)//到达终点的车
+                    {
+                        car->setStatusEnd();
+                        carsInRoadFromTo[lane].erase(carsInRoadFromTo[lane].begin());//删除第一个元素
+                        outnumOfCarinRoads();
+                        continue;
+                    }
                     //车即将驶出当前road，交给路口处理
                     car->_nextCross = car->searchPath(map);
                     int dif = min(roads[car->_nextRoad - ROAD_INDEX]->_limitSpeed, car->_maxSpeed) - car->_distanceToCross;
@@ -53,8 +63,15 @@ void Road::processCarInRoad(Map & map) //还没考虑拐不过去的情况
                     else
                     {
                         /*把需要进入入口的车加入到队列中*/
-                        Cross::crosses[car->_curCross - CROSS_INDEX]->addCarToQueue(car);
-                        carsInRoadFromTo[lane].erase(carsInRoadFromTo[lane].begin());//删除第一个元素
+                        if(Cross::crosses[car->_curCross - CROSS_INDEX]->addCarToQueue(car))
+                        {
+                            carsInRoadFromTo[lane].erase(carsInRoadFromTo[lane].begin());//删除第一个元素
+                            outnumOfCarinRoads();
+                        }
+                        else
+                        {
+                            assert(0);
+                        }
                     }
                 }
             }
@@ -88,6 +105,13 @@ void Road::processCarInRoad(Map & map) //还没考虑拐不过去的情况
             {
                 if(car->_curSpeed > car->_distanceToCross)
                 {
+                    if(Cross::crosses[car->_curCross - CROSS_INDEX]->_id == car->_to)//到达终点的车
+                    {
+                        car->setStatusEnd();
+                        carsInRoadToFrom[lane].erase(carsInRoadToFrom[lane].begin());//删除第一个元素
+                        outnumOfCarinRoads();
+                        continue;
+                    }
                     //车即将驶出当前road，交给路口处理
                     car->_nextCross = car->searchPath(map);
                     int dif = min(roads[car->_nextRoad - ROAD_INDEX]->_limitSpeed, car->_maxSpeed) - car->_distanceToCross;
@@ -98,8 +122,15 @@ void Road::processCarInRoad(Map & map) //还没考虑拐不过去的情况
                     else
                     {
                         /*把需要进入入口的车加入到队列中*/
-                        Cross::crosses[car->_curCross - CROSS_INDEX]->addCarToQueue(car);
-                        carsInRoadToFrom[lane].erase(carsInRoadToFrom[lane].begin());//删除第一个元素
+                        if(Cross::crosses[car->_curCross - CROSS_INDEX]->addCarToQueue(car))
+                        {
+                            carsInRoadToFrom[lane].erase(carsInRoadToFrom[lane].begin());//删除第一个元素
+                            outnumOfCarinRoads();
+                        }
+                        else
+                        {
+                            assert(0);
+                        }
                     }
                 }
             }
@@ -123,14 +154,15 @@ void Road::processCarInRoad(Map & map) //还没考虑拐不过去的情况
 bool Road::addCarToRoad(Car* car, int lane) 
 {
     int dif = min(car->_maxSpeed,_limitSpeed) - car->_distanceToCross;//根据任务书中10.8-(5)Table1中的计算规则
-
-    assert(dif>0 && dif<_length);//必须大于零才正常
+    assert(dif>0);//必须大于零才正常
+    assert(dif<_length);
     assert(car->_curCross == _from || car->_curCross == _to);
     if(car->_curCross == _from)
     {
         if(carsInRoadFromTo[lane].empty())
         {
             carsInRoadFromTo[lane].push_back(car);
+            addnumOfCarinRoads();
             car->_distanceToCross = _length - dif;
         }
         else if((_length - 1) != carsInRoadFromTo[lane].back()->_distanceToCross)
@@ -140,6 +172,7 @@ bool Road::addCarToRoad(Car* car, int lane)
             else 
                 car->_distanceToCross = _length - dif;
             carsInRoadFromTo[lane].push_back(car);
+            addnumOfCarinRoads();
         }
         else
         {
@@ -151,6 +184,7 @@ bool Road::addCarToRoad(Car* car, int lane)
         if(carsInRoadToFrom[lane].empty())
         {
             carsInRoadToFrom[lane].push_back(car);
+            addnumOfCarinRoads();
             car->_distanceToCross = _length - dif;
         }
         else if((_length - 1) != carsInRoadToFrom[lane].back()->_distanceToCross)
@@ -160,6 +194,7 @@ bool Road::addCarToRoad(Car* car, int lane)
             else 
                 car->_distanceToCross = _length - dif;
             carsInRoadToFrom[lane].push_back(car);
+            addnumOfCarinRoads();
         }
         else
         {
@@ -196,26 +231,30 @@ void Road::addCarsToRoad(queue<Car *>& waiting_cars) {
         Car *car = waiting_cars.front();
         waiting_cars.pop();
         //car->setStatusEnd();
-        //cout<<car->_startTime <<endl;
         if(-1==car->_atRoad)
-        {
-            //car->setStatusEnd();
+        {//起步的车出不去，那么等待下次出去，把状态都恢复到初始化
             car->setStatusStop();
-            car->_startTime = car->_startTime+5;
+            car->_startTime = car->_startTime+1;
+            car->_preCross = car->_from;
+            car->_curCross = car->_from;
+            car->_nextCross = car->_from;
+            car->_nextRoad = -1;
+            car->_turnto = isForward;
         }
         else
         {
+            //assert(0);
+            ++deadCarnum;
             car->setStatusEnd();
-            // system("pause");
         }
     }
 }
 
 
-void Road::backCar(uint32_t car_id) {
-    Car::cars[car_id - CAR_INDEX]->_distanceToCross = 0;
-    //还要其它信息...
-}
+// void Road::backCar(uint32_t car_id) {
+//     Car::cars[car_id - CAR_INDEX]->_distanceToCross = 0;
+//     //还要其它信息...
+// }
 
 
 

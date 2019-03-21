@@ -12,15 +12,10 @@
 #include "road.h"
 
 using namespace std;
-//extern int Scheduler(vector<Car *>& cars);
-
+extern int deadCarnum;
 uint32_t turntime = 1;
 
-
-// void initCar(string file);
-// void initCross(Map &map);
 void writeAnswer(string file, vector<Car *>& cars);
-
 
 int main(int argc, char *argv[])
 {
@@ -49,27 +44,21 @@ int main(int argc, char *argv[])
 
 	do
 	{
-		Car::Scheduler(map);//启动车辆加到路口
+		Car::Scheduler(map);
+		/*启动车辆加到路口*/
 		/*路上的车辆加入cross*/
 		/*路口处理车辆*/
 		/*路口的车辆出来到路上*/	
-		cout<<"turntime:"<<turntime<<"  "<<"numRuning:"<<Car::numRuning<<"  "<<"numStop:"<<Car::numStop<<"  "<<"numEnd:"<<Car::numEnd<<endl;
+		cout<<"turntime:"<<turntime<<"  "<<"numRuning:"<<Car::numRuning<<"  "<<"carinRoad"<<Road::numOfCarInRoads
+		<<"  "<<"numStop:"<<Car::numStop<<"  "<<"numEnd:"<<Car::numEnd<<"  "<<"dead:"<<deadCarnum<<endl;
 		++turntime;
 	}while(Car::numRuning != 0 || Car::numStop !=0);
 
-	writeAnswer(answerPath, Car::cars);
-
-
-
-	/*把计划开始的*/
-	// TODO:read input filebuf
-	// TODO:process
-	// TODO:write output file
-	
+	writeAnswer(answerPath, Car::cars);	
 	return 0;
 }
 
-/*读入road.txt文件和cross.txt文件*/
+/*写入answer.txt文件*/
 void writeAnswer(string file, vector<Car *>& cars)
 {
 	ofstream outfile; 
