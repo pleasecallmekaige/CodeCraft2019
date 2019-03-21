@@ -53,6 +53,15 @@ TURN whereToTurn(int &atRoad, int &nextRoad, vector<int>& nextRoadvector)
     return TURNTABLE[t-1][f-1];
 }
 
+int Car::getScore(int distance, int _curCross, int nextRoadId)
+{
+    Road* proad = Road::roads[nextRoadId - ROAD_INDEX];
+    assert(_curCross==proad->_from || _curCross==proad->_to);
+    int jams = (_curCross == proad->_from)?proad->_jamsFromTo:proad->_jamsToFrom;
+
+    return 0;
+}
+
 int Car::searchPath(Map &map)
 {
     vector<int> nextRoad;
@@ -71,7 +80,7 @@ int Car::searchPath(Map &map)
             {//查找下一个相邻的路口
                 nextCross.push_back((map.road[nextRoad[i]-ROAD_INDEX][4] == _curCross)? map.road[nextRoad[i]-ROAD_INDEX][5]:map.road[nextRoad[i]-ROAD_INDEX][4]);
                 trueNextRoad.push_back(nextRoad[i]);
-            } 
+            }
             else if(map.road[nextRoad[i]-ROAD_INDEX][6] == 0 && _curCross == map.road[nextRoad[i]-ROAD_INDEX][4])
             {
                 nextCross.push_back(map.road[nextRoad[i]-ROAD_INDEX][5]);
@@ -79,13 +88,14 @@ int Car::searchPath(Map &map)
             }
         }
     }
-    int distance = INT32_MAX;
+    int score = INT32_MAX;
     for(size_t i = 0u; i<nextCross.size(); ++i)
     {
-        int tmp = map.map[nextCross[i]][_to]; 
-        if(tmp < distance && nextCross[i] != _preCross) 
+        int distance = map.map[nextCross[i] - CROSS_INDEX][_to - CROSS_INDEX] + map.map[_curCross - CROSS_INDEX][nextCross[i] - CROSS_INDEX]; 
+        distance = getScore(distance, _curCross, trueNextRoad[i]);
+        if(distance < score && nextCross[i] != _preCross)
         {//出现距离更小的路，且没有掉头返回上一个路口（车辆不允许掉头）
-            distance = tmp;
+            score = distance;
             resCross = nextCross[i];
             resRoad = trueNextRoad[i];
         }
@@ -130,7 +140,7 @@ void Car::Scheduler(Map &map)
     {
         Car* p = cars[i];
         //if(p->_startTime == turntime && p->getStatus() == isStop  && Car::numRuning < 100)//调度车辆启动 && Car::numRuning <100
-        if(turntime >= p->_planeTime && p->getStatus() == isStop && p->_maxSpeed >j && Car::numRuning <150)
+        if(turntime >= p->_planeTime && p->getStatus() == isStop && p->_maxSpeed >j && Car::numRuning <500)
         {
             p->setStatusRuning();
             p->setStartTime(turntime);
@@ -139,8 +149,8 @@ void Car::Scheduler(Map &map)
         }
         // if(p->_startTime <= turntime && p->getStatus() == isStop)
         //     p->setStartTime(turntime + 1);
-        if(Car::numRuning < 18)j-=2;
     }
+    if(Car::numRuning < 18)j-=2;
     for(size_t i=0u; i<Road::roads.size(); ++i)//调度路上的车进入cross
     {
         Road::roads[i]->processCarInRoad(map);//进入入口后判断是否到达终点
@@ -148,6 +158,11 @@ void Car::Scheduler(Map &map)
     for (size_t i=0u; i<Cross::crosses.size(); ++i )//调度所有路口
     {
         Cross::crosses[i]->outputCarToRoad();//车辆从路口出来
+    }
+
+    for(size_t i=0u; i<Road::roads.size(); ++i)//更新路况
+    {
+        Road::roads[i]->updateRoadCondition();
     }
 }
 //100 10

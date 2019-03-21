@@ -1,5 +1,6 @@
 #include "road.h"
 #include "cross.h"
+#include "car.h"
 
 int deadCarnum = 0;
 
@@ -13,7 +14,6 @@ int Road::numOfCarInRoads = 0;
 Road::Road(vector<int>& oneRoad)
     :_id(oneRoad[0]),
     _length(oneRoad[1]),
-    _speed(oneRoad[2]),
     _limitSpeed(oneRoad[2]),
     _channel(oneRoad[3]),
     _from(oneRoad[4]),
@@ -248,6 +248,11 @@ void Road::addCarsToRoad(queue<Car *>& waiting_cars) {
             car->setStatusEnd();
         }
     }
+}
+
+void Road::updateRoadCondition()
+{
+
 }
 
 

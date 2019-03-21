@@ -5,11 +5,13 @@
 #include <vector>
 #include <queue>
 
-#include "car.h"
+#include "map.h"
 
 using namespace std;
 
 #define CROSS_INDEX 1
+
+class Car;
 
 struct CrossToRoad
 {

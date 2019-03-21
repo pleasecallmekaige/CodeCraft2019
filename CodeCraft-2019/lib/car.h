@@ -4,6 +4,8 @@
 #include <vector>
 
 #include "map.h"
+#include "road.h"
+#include "cross.h"
 
 #define CAR_INDEX 10000
 /*
@@ -15,6 +17,9 @@ using namespace std;
 enum TURN {isLeft=0, isForward=1, isRight=2, none=-1};
 
 enum RUNSTATUS {isStop=0, isRuning=1, isEnd=2};
+
+class Road;
+class Cross;
 
 class Car
 {
@@ -81,6 +86,10 @@ public:
     // {
     //     return Road::roads[_nextRoad-ROAD_INDEX];
     // }
+    // Cross* getCurCross()
+    // {
+    //     return Cross::crosses[_curCross-CROSS_INDEX];
+    // }
 
     static void readCars(string file);
 
@@ -89,6 +98,8 @@ public:
 
     /*车辆调度函数,控制车辆的启动*/
     static void Scheduler(Map &map);
+
+    int getScore(int distance, int _curCross, int nextRoadId);
 
     /*初始化后所有车的指针数组，
     Car::cars[i]就是第i辆车的指针*/

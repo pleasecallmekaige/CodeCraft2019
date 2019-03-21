@@ -3,6 +3,7 @@
  */
 #include "cross.h"
 #include "road.h"
+#include "car.h"
 
 vector<Cross *> Cross::crosses;
 
