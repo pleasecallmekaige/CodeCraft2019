@@ -3,3 +3,4 @@ bin/
 build/
 CodeCraft-code.tar.gz
 config/
+mybuild.sh

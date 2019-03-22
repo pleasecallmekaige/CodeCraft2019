@@ -47,6 +47,9 @@ public:
 
     void updateRoadCondition();
 
+    float getJams(int _curCross);
+
+
     void backCar(uint32_t car_id);//将车退回来的road
 
 

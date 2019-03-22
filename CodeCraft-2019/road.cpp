@@ -18,7 +18,11 @@ Road::Road(vector<int>& oneRoad)
     _channel(oneRoad[3]),
     _from(oneRoad[4]),
     _to(oneRoad[5]),
-    _isDuplex(oneRoad[6])
+    _isDuplex(oneRoad[6]),
+    _jamsFromTo(0.0f),
+    _carNumFromTo(0),
+    _jamsToFrom(0.0f),
+    _carNumToFrom(0)
     {
         carsInRoadFromTo.resize(_channel);
         carsInRoadToFrom.resize(_channel);
@@ -261,6 +265,16 @@ void Road::updateRoadCondition()
     assert(_channel*_length != 0);
     _jamsFromTo = (float)_carNumFromTo/(float)((int)_channel*(int)_length);
     _jamsToFrom = (float)_carNumToFrom/(float)((int)_channel*(int)_length);
+}
+
+float Road::getJams(int _curCross)
+{
+    assert(_curCross==_from || _curCross==_to);
+    float jams = (_curCross == _from)?_jamsFromTo:_jamsToFrom;
+    assert(jams<=1);
+    if(jams > 0.99)
+        jams = 0.99;
+    return jams;
 }
 
 

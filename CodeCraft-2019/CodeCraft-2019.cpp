@@ -41,6 +41,7 @@ int main(int argc, char *argv[])
 	Map map(roadPath,crossPath);
 	Cross::initCrosses(map);
 	Road::initRoads(map);
+	//mySDL::init();//可视化初始化
 
 	do
 	{
@@ -52,6 +53,7 @@ int main(int argc, char *argv[])
 		cout<<"turntime:"<<turntime<<"  "<<"numRuning:"<<Car::numRuning<<"  "<<"carinRoad"<<Road::numOfCarInRoads
 		<<"  "<<"numStop:"<<Car::numStop<<"  "<<"numEnd:"<<Car::numEnd<<"  "<<"dead:"<<deadCarnum<<endl;
 		++turntime;
+		//mySDL::display();//可视化
 	}while(Car::numRuning != 0 || Car::numStop !=0);
 
 	writeAnswer(answerPath, Car::cars);	

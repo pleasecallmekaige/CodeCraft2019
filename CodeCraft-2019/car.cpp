@@ -56,12 +56,15 @@ TURN whereToTurn(int &atRoad, int &nextRoad, vector<int>& nextRoadvector)
 int Car::getScore(int distance, int _curCross, int nextRoadId)
 {
     Road* proad = Road::roads[nextRoadId - ROAD_INDEX];
-    assert(_curCross==proad->_from || _curCross==proad->_to);
-    float jams = (_curCross == proad->_from)?proad->_jamsFromTo:proad->_jamsToFrom;
+    float jams = proad->getJams(_curCross);
+    if(jams > 0.5f)
+    {
+        int b = 9;
+    }
     assert(jams<1);
     //if(jams>=0.8)jams=0.79999;
-
-    return distance/(1-jams);
+    int a = distance/(1-jams);
+    return a;
 }
 
 int Car::searchPath(Map &map)
@@ -138,19 +141,17 @@ int Car::searchPath(Map &map)
 void Car::Scheduler(Map &map)
 {
     static int j = 6;
+    if(Car::numEnd == 2506)
+        j = j;
     for (int i=0; i<Car::numALL; ++i )//把启动车辆加入入口
     {
         Car* p = cars[i];
-        //if(p->_startTime == turntime && p->getStatus() == isStop  && Car::numRuning < 100)//调度车辆启动 && Car::numRuning <100
-        if(turntime >= p->_planeTime && p->getStatus() == isStop && p->_maxSpeed >j && Car::numRuning <500)
+        if(turntime >= p->_planeTime && p->getStatus() == isStop && p->_maxSpeed >j && Car::numRuning <800)
         {
             p->setStatusRuning();
-            p->setStartTime(turntime);
             Cross::crosses[p->_from - CROSS_INDEX]->processStartCar(map, p);
-            //Car::cars[i]->searchPath(map);
         }
-        // if(p->_startTime <= turntime && p->getStatus() == isStop)
-        //     p->setStartTime(turntime + 1);
+
     }
     if(Car::numRuning < 18)j-=2;
     for(size_t i=0u; i<Road::roads.size(); ++i)//调度路上的车进入cross

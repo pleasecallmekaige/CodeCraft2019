@@ -86,7 +86,18 @@ int8_t Cross::processStartCar(Map &map, Car* car)
     car->_preCross = car->_curCross;
     car->_curCross = car->_nextCross;
     car->_nextCross = car->searchPath(map);//_nextRoad已经更新为要出发的road  _toturn
-
+    /*判断一下当前路段会不会很度堵，jams大的话就不出来*/
+    if(Road::roads[car->_nextRoad - ROAD_INDEX]->getJams(car->_curCross) > 0.3f)
+    {
+            car->setStatusStop();
+            car->_startTime = car->_startTime + 1;
+            car->_preCross = car->_from;
+            car->_curCross = car->_from;
+            car->_nextCross = car->_from;
+            car->_nextRoad = -1;
+            car->_turnto = isForward;
+            return 0;
+    }
     if(car->_nextRoad == _outToRoad[0].roadId)
         _outToRoad[0].startQueue.push(car);
     else if(car->_nextRoad == _outToRoad[1].roadId)
