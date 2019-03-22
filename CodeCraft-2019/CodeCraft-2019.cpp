@@ -39,8 +39,9 @@ int main(int argc, char *argv[])
 	Car::numALL = Car::cars.size();
 	Car::numStop = Car::numALL;//所有未启动的车
 	Map map(roadPath,crossPath);
-	Cross::initCrosses(map);
 	Road::initRoads(map);
+	Cross::initCrosses(map, Road::roads);
+
 	//mySDL::init();//可视化初始化
 
 	do

@@ -18,46 +18,8 @@ class Car;
 class Road
 {
 public:
-    /*Road的构造函数*/
-    Road(vector<int>& oneRoad);
-
-    /*所有道路*/
-    static vector<Road *> roads;
-
-    static int numOfCarInRoads;
-
-    void addnumOfCarinRoads()
-    {
-        ++numOfCarInRoads;    
-    }
-
-    void outnumOfCarinRoads()
-    {
-        --numOfCarInRoads;
-    }
-
-    /*static function*/
-    static void initRoads(Map &map);
-
-    void processCarInRoad(Map & map);//处理在道路上的车
-
-    bool addCarToRoad(Car* car, int lane); //将车加入道路上
-
-    void addCarsToRoad(queue<Car *> &waiting_cars); //将路口传来的车加到当前道路上；
-
-    void updateRoadCondition();
-
-    float getJams(int _curCross);
-
-
-    void backCar(uint32_t car_id);//将车退回来的road
-
-
-    std::vector<std::vector<Car *>> carsInRoadFromTo;//存放当前车道上正向行驶的车id
-    std::vector<std::vector<Car *>> carsInRoadToFrom;//存放当前道路上反向行驶的车id
-    //std::vector<std::vector< Car *>> content; //存放当前车道上的车辆的id
     /*road的id*/
-    uint32_t _id;
+    int _id;
     /*road的长度*/
     int16_t _length;
     /*当前道路车的最高速度*/
@@ -76,7 +38,61 @@ public:
     float _jamsToFrom;
     int _carNumToFrom;
 
-    /*获取各个车道的车辆数目，以及能否进入*/
+    int _numOfWaitCar;
+
+    std::vector<std::vector<Car *>> carsInRoadFromTo;//存放当前车道上正向行驶的车id
+    std::vector<std::vector<Car *>> carsInRoadToFrom;//存放当前道路上反向行驶的车id
+
+    /*Road的构造函数*/
+    Road(vector<int>& oneRoad);
+
+    /*所有道路*/
+    static vector<Road *> roads;
+
+    static int numOfCarInRoads;
+
+    void addNumOfWaiteCar()
+    {
+        ++_numOfWaitCar;
+        ++Car::numWait;
+    }
+    void delNumOfWaiteCar()
+    {
+        --_numOfWaitCar;
+        --Car::numWait;
+    }
+    void addnumOfCarinRoads()
+    {
+        ++numOfCarInRoads;    
+    }
+
+    void outnumOfCarinRoads()
+    {
+        --numOfCarInRoads;
+    }
+
+    /*static function*/
+    static void initRoads(Map &map);
+
+    void driveOneChannel(vector<Car *>& oneChannel);
+
+    void driveAllCarJustOnRoadToEndStatus();//处理在道路上的车
+
+    Car* getFirstCar();
+
+    //void processRoad(Map & map);
+
+    //bool addCarToRoad(Car* car, int lane); //将车加入道路上
+
+    //void addCarsToRoad(queue<Car *> &waiting_cars); //将路口传来的车加到当前道路上；
+
+    void updateRoadCondition();
+
+    float getJams(int _curCross);
+
+
+    /*获取各个车道的尾部车辆距离车道底部的距离*/
+    int getLenToButton(int8_t channel);
 };
 
 

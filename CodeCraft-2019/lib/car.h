@@ -117,6 +117,9 @@ public:
     /*所有车数量*/
     static int numALL;
 
+    /*所有处于等待状态车的数量*/
+    static int numWait;
+
     uint32_t _id;
     int16_t _from;
     int16_t _to;
@@ -149,8 +152,8 @@ public:
     int8_t _atChannel;
     /*当前距离Cross的长度*/
     int16_t _distanceToCross;
-    // int atCross[2];/*当前处于那个cross*/
-
+    
+    bool _isEndStatusOnRoad;
 
 };
 
