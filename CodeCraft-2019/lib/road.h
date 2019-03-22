@@ -28,7 +28,7 @@ public:
 
     void addnumOfCarinRoads()
     {
-        ++numOfCarInRoads;
+        ++numOfCarInRoads;    
     }
 
     void outnumOfCarinRoads()
@@ -66,10 +66,12 @@ public:
     bool _isDuplex;
 
     /*road的from->to的拥堵情况*/
-    int _jamsFromTo;
+    float _jamsFromTo;
+    int _carNumFromTo;
 
     /*road的to->from的拥堵情况*/
-    int _jamsToFrom;
+    float _jamsToFrom;
+    int _carNumToFrom;
 
     /*获取各个车道的车辆数目，以及能否进入*/
 };

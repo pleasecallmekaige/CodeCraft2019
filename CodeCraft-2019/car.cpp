@@ -57,9 +57,11 @@ int Car::getScore(int distance, int _curCross, int nextRoadId)
 {
     Road* proad = Road::roads[nextRoadId - ROAD_INDEX];
     assert(_curCross==proad->_from || _curCross==proad->_to);
-    int jams = (_curCross == proad->_from)?proad->_jamsFromTo:proad->_jamsToFrom;
+    float jams = (_curCross == proad->_from)?proad->_jamsFromTo:proad->_jamsToFrom;
+    assert(jams<1);
+    //if(jams>=0.8)jams=0.79999;
 
-    return 0;
+    return distance/(1-jams);
 }
 
 int Car::searchPath(Map &map)

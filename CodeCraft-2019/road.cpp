@@ -51,6 +51,7 @@ void Road::processCarInRoad(Map & map) //还没考虑拐不过去的情况
                         car->setStatusEnd();
                         carsInRoadFromTo[lane].erase(carsInRoadFromTo[lane].begin());//删除第一个元素
                         outnumOfCarinRoads();
+                        --_carNumFromTo;
                         continue;
                     }
                     //车即将驶出当前road，交给路口处理
@@ -67,6 +68,7 @@ void Road::processCarInRoad(Map & map) //还没考虑拐不过去的情况
                         {
                             carsInRoadFromTo[lane].erase(carsInRoadFromTo[lane].begin());//删除第一个元素
                             outnumOfCarinRoads();
+                            --_carNumFromTo;
                         }
                         else
                         {
@@ -110,6 +112,7 @@ void Road::processCarInRoad(Map & map) //还没考虑拐不过去的情况
                         car->setStatusEnd();
                         carsInRoadToFrom[lane].erase(carsInRoadToFrom[lane].begin());//删除第一个元素
                         outnumOfCarinRoads();
+                        --_carNumToFrom;
                         continue;
                     }
                     //车即将驶出当前road，交给路口处理
@@ -126,6 +129,7 @@ void Road::processCarInRoad(Map & map) //还没考虑拐不过去的情况
                         {
                             carsInRoadToFrom[lane].erase(carsInRoadToFrom[lane].begin());//删除第一个元素
                             outnumOfCarinRoads();
+                            --_carNumToFrom;
                         }
                         else
                         {
@@ -162,8 +166,9 @@ bool Road::addCarToRoad(Car* car, int lane)
         if(carsInRoadFromTo[lane].empty())
         {
             carsInRoadFromTo[lane].push_back(car);
-            addnumOfCarinRoads();
+            ++_carNumFromTo;
             car->_distanceToCross = _length - dif;
+
         }
         else if((_length - 1) != carsInRoadFromTo[lane].back()->_distanceToCross)
         {
@@ -172,7 +177,7 @@ bool Road::addCarToRoad(Car* car, int lane)
             else 
                 car->_distanceToCross = _length - dif;
             carsInRoadFromTo[lane].push_back(car);
-            addnumOfCarinRoads();
+            ++_carNumFromTo;
         }
         else
         {
@@ -184,7 +189,7 @@ bool Road::addCarToRoad(Car* car, int lane)
         if(carsInRoadToFrom[lane].empty())
         {
             carsInRoadToFrom[lane].push_back(car);
-            addnumOfCarinRoads();
+            ++_carNumToFrom;
             car->_distanceToCross = _length - dif;
         }
         else if((_length - 1) != carsInRoadToFrom[lane].back()->_distanceToCross)
@@ -194,13 +199,14 @@ bool Road::addCarToRoad(Car* car, int lane)
             else 
                 car->_distanceToCross = _length - dif;
             carsInRoadToFrom[lane].push_back(car);
-            addnumOfCarinRoads();
+            ++_carNumToFrom;
         }
         else
         {
             return false;
         }
     }
+    addnumOfCarinRoads();
     car->_atRoad = _id;
     car->_atChannel = lane;
     car->_preCross = car->_curCross;
@@ -234,7 +240,7 @@ void Road::addCarsToRoad(queue<Car *>& waiting_cars) {
         if(-1==car->_atRoad)
         {//起步的车出不去，那么等待下次出去，把状态都恢复到初始化
             car->setStatusStop();
-            car->_startTime = car->_startTime+1;
+            car->_startTime = car->_startTime + 1;
             car->_preCross = car->_from;
             car->_curCross = car->_from;
             car->_nextCross = car->_from;
@@ -252,7 +258,9 @@ void Road::addCarsToRoad(queue<Car *>& waiting_cars) {
 
 void Road::updateRoadCondition()
 {
-
+    assert(_channel*_length != 0);
+    _jamsFromTo = (float)_carNumFromTo/(float)((int)_channel*(int)_length);
+    _jamsToFrom = (float)_carNumToFrom/(float)((int)_channel*(int)_length);
 }
 
 
