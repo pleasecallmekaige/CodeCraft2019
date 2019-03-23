@@ -51,8 +51,8 @@ int main(int argc, char *argv[])
 		/*路上的车辆加入cross*/
 		/*路口处理车辆*/
 		/*路口的车辆出来到路上*/	
-		cout<<"turntime:"<<turntime<<"  "<<"numRuning:"<<Car::numRuning<<"  "<<"carinRoad"<<Road::numOfCarInRoads
-		<<"  "<<"numStop:"<<Car::numStop<<"  "<<"numEnd:"<<Car::numEnd<<"  "<<"dead:"<<deadCarnum<<endl;
+		// cout<<"turntime:"<<turntime<<"  "<<"numRuning:"<<Car::numRuning<<"  "<<"carinRoad"<<Road::numOfCarInRoads
+		// <<"  "<<"numStop:"<<Car::numStop<<"  "<<"numEnd:"<<Car::numEnd<<"  "<<"dead:"<<deadCarnum<<endl;
 		++turntime;
 		//mySDL::display();//可视化
 	}while(Car::numRuning != 0 || Car::numStop !=0);

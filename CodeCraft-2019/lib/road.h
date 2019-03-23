@@ -51,25 +51,19 @@ public:
 
     static int numOfCarInRoads;
 
-    void addNumOfWaiteCar()
-    {
-        ++_numOfWaitCar;
-        ++Car::numWait;
-    }
-    void delNumOfWaiteCar()
-    {
-        --_numOfWaitCar;
-        --Car::numWait;
-    }
-    void addnumOfCarinRoads()
-    {
-        ++numOfCarInRoads;    
-    }
+    void addNumOfWaiteCar();
 
-    void outnumOfCarinRoads()
-    {
-        --numOfCarInRoads;
-    }
+    void delNumOfWaiteCar();
+
+    // void addNumOfCarInRoads()
+    // {
+    //     ++numOfCarInRoads;    
+    // }
+
+    // void outNumOfCarInRoads()
+    // {
+    //     --numOfCarInRoads;
+    // }
 
     /*static function*/
     static void initRoads(Map &map);
@@ -78,21 +72,27 @@ public:
 
     void driveAllCarJustOnRoadToEndStatus();//处理在道路上的车
 
-    Car* getFirstCar();
+    /*获取每个road的优先级第一的车，没有可出来的车就返回NULL*/
+    Car* getFirstCar(int16_t curCross);
+
+    /*获取各个车道的尾部能不能加车进来,
+    返回false：就是不能加车进来，
+    返回true:能加进来
+    输入len:在当前路段的distenceToCross
+    */
+    bool canAddToButton(Car * car);
 
     //void processRoad(Map & map);
 
-    //bool addCarToRoad(Car* car, int lane); //将车加入道路上
+    void addCarToRoad(Car * car); //将路口传来的车加到当前道路上
 
-    //void addCarsToRoad(queue<Car *> &waiting_cars); //将路口传来的车加到当前道路上；
+    void outCarToRoad(Car * car);//处理行使出去的车；
 
     void updateRoadCondition();
 
     float getJams(int _curCross);
-
-
-    /*获取各个车道的尾部车辆距离车道底部的距离*/
-    int getLenToButton(int8_t channel);
+private:
+    bool ToRoad(Car* car, int lane); //将车加入道路上
 };
 
 

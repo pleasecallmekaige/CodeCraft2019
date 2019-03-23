@@ -40,7 +40,8 @@ void mycomp(vector<Road*>& eachRoad)
 }
 
 Cross::Cross(vector<int>& oneCross, vector<Road *>& roads)
-   :_id(oneCross[0])
+   :_id(oneCross[0]),
+    _processNum(0)
 {
     _Road[0] = NULL;
     _Road[1] = NULL;
@@ -68,140 +69,142 @@ void Cross::initCrosses(Map &map, vector<Road *>& roads)
     }
 }
 
-void Cross::processEachCross()
+void Cross::processEachCross(Map& map)
 {
-
-    for(size_t i = 0; i<_sortRoad.size(); ++i)
+    int pre=0,cur=0;
+    if(_id == 31)
+        int a = 9;
+    // _carPool.clear();//先清空处理池
+    if(_processNum == 0)//每个turntime第一次调度要先构建处理池
     {
-        
+        for(size_t i = 0u; i<_sortRoad.size();++i)//每次刚进一个路口就做一个（road的数量）辆车的处理池
+        {
+            Car *car = _sortRoad[i]->getFirstCar(_id);
+            if(car != NULL)//这条路还能取到车出来的
+                addCarToPool(car, map);//把新的优先级最高的car加入到处理池里面
+        }
     }
-    //processEachRoad();
+    for(size_t i = 0u; i<_sortRoad.size();)//路口id升序遍历
+    {
+        processEachRoad(_sortRoad[i], map);
+        cur += _sortRoad[i]->_numOfWaitCar;//记录cross每个road的处于wait的车的和
+        ++i;
+        if(i == _sortRoad.size())//完成一次遍历road
+        {
+            i = 0;
+            /*每遍历完一遍所有road判断一下是否break*/
+            if(cur == pre)break;//如果这次遍历完和上次wait的车辆一样说明路口没有可以动的车了。
+            else{
+                pre = cur;
+                cur = 0;
+            }
+        }
+    }
+    ++_processNum;//每完成一次路口处理加一
 }
 
 
+void Cross::processEachRoad(Road* proad, Map& map)
+{
+    Car* car = NULL;
+    vector<vector<Car*>>& roadvector = (_id==proad->_from)?proad->carsInRoadToFrom:proad->carsInRoadFromTo;
+    car = proad->getFirstCar(_id);
+    while(1)
+    {
+        //car = proad->getFirstCar(_id);
+        if(car == NULL)return;//这个路没有第一优先级可以出来的车
+        if(car->_curCross != _id)
+            int b = 9;
+        assert(car->_atRoad == proad->_id);
+        assert(car->_curCross == _id );
+        if(car->_to == _id)//到达终点
+        {
+            car->moveToEnd();
+            proad->driveOneChannel(roadvector[car->_atChannel]);//调整一次车道
+            /*处理池的更新*/
+            delCarFromPool(car);//car已经从road里面删掉了但还要从处理池里面删掉
+            car = proad->getFirstCar(_id);
+            if(car != NULL)//这条路还能取到车出来的
+                addCarToPool(car, map);//把新的优先级最高的car加入到处理池里面
+            continue;
+        }
+        /*处理冲突*/
+        for(size_t i=0u; i<_carPool.size(); ++i)
+        {
+            if(_carPool[i]->_id != car->_id)
+            {
+                if(car->_nextRoad == _carPool[i]->_nextRoad && car->_turnto < _carPool[i]->_turnto)
+                {//有别的车也去这个车的目标road且优先级比自己高（有冲突）
+                    return;
+                }
+            }
+        }
+        /*下一条路能不能进，有wait状态的车辆挡着，或者三条路都堵死了*/
+        if(!car->getNextRoad()->canAddToButton(car))
+            return;
+        
+        /*处理任务书中10.8-(5)Table1中的计算规则*/
+        int dif = min(car->getNextRoad()->_limitSpeed, car->_maxSpeed) - car->_distanceToCross;
+        if(dif<=0)
+        {
+            car->_distanceToCross = 0;
+            car->_isEndStatusOnRoad = true;
+            car->getAtRoad()->delNumOfWaiteCar();
+            proad->driveOneChannel(roadvector[car->_atChannel]);
+        }
+        /*这一辆车调度没有冲突*/
+        car->moveToNextRoad();
+        proad->driveOneChannel(roadvector[car->_atChannel]);
+        /*处理池的更新*/
+        delCarFromPool(car);//car已经从road里面删掉了但还要从处理池里面删掉
+        car = proad->getFirstCar(_id);
+        if(car != NULL)//这条路还能取到车出来的
+            addCarToPool(car, map);//把新的优先级最高的car加入到处理池里面
+    }
+}
 
-// bool Cross::addCarToQueue(Car *car)
-// {
-//     // if(car->_to == _id)
-//     // {
-//     //     car->setStatusEnd();
-//     //     return true;
-//     // }
-//     if(car->_nextRoad == _outToRoad[0].roadId)
-//     {
-//         switch(car->_turnto)
-//         {
-//             case isForward: _outToRoad[0].DQueue.push(car);  break;
-//             case isLeft:    _outToRoad[0].LQueue.push(car);  break;
-//             case isRight:   _outToRoad[0].RQueue.push(car);  break;
-//             default: assert(0); break;
-//         }
-//     }
-//     else if(car->_nextRoad == _outToRoad[1].roadId)
-//     {
-//         switch(car->_turnto)
-//         {
-//             case isForward: _outToRoad[1].DQueue.push(car);  break;
-//             case isLeft:    _outToRoad[1].LQueue.push(car);  break;
-//             case isRight:   _outToRoad[1].RQueue.push(car);  break;
-//             default: assert(0); break;
-//         }
-//     }
-//     else if(car->_nextRoad == _outToRoad[2].roadId)
-//      {
-//         switch(car->_turnto)
-//         {
-//             case isForward: _outToRoad[2].DQueue.push(car);  break;
-//             case isLeft:    _outToRoad[2].LQueue.push(car);  break;
-//             case isRight:   _outToRoad[2].RQueue.push(car);  break;
-//             default: assert(0);  break;
-//         }
-//     }
-//     else if(car->_nextRoad == _outToRoad[3].roadId)
-//     {
-//         switch(car->_turnto)
-//         {
-//             case isForward: _outToRoad[3].DQueue.push(car);  break;
-//             case isLeft:    _outToRoad[3].LQueue.push(car);  break;
-//             case isRight:   _outToRoad[3].RQueue.push(car);  break;
-//             default: assert(0); break;
-//         }
-//     }
-//     else
-//     {
-//         assert(0);
-//         return false;//表示没有找到路返回失败
-//     }
-//     return true;
-// }
+void Cross::addCarToPool(Car * car, Map& map)
+{
+    /*搜索路径算法放这里*/
+    car->_nextCross = car->searchPath(map);//_nextRoad已经更新为要出发的road  _toturn
+    _carPool.push_back(car);
+}
 
-// int8_t Cross::processStartCar(Map &map, Car* car)
-// {
-//     car->_preCross = car->_curCross;
-//     car->_curCross = car->_nextCross;
-//     car->_nextCross = car->searchPath(map);//_nextRoad已经更新为要出发的road  _toturn
-//     /*判断一下当前路段会不会很度堵，jams大的话就不出来*/
-//     if(Road::roads[car->_nextRoad - ROAD_INDEX]->getJams(car->_curCross) > 0.3f)
-//     {
-//             car->setStatusStop();
-//             car->_startTime = car->_startTime + 1;
-//             car->_preCross = car->_from;
-//             car->_curCross = car->_from;
-//             car->_nextCross = car->_from;
-//             car->_nextRoad = -1;
-//             car->_turnto = isForward;
-//             return 0;
-//     }
-//     if(car->_nextRoad == _outToRoad[0].roadId)
-//         _outToRoad[0].startQueue.push(car);
-//     else if(car->_nextRoad == _outToRoad[1].roadId)
-//         _outToRoad[1].startQueue.push(car);
-//     else if(car->_nextRoad == _outToRoad[2].roadId)
-//         _outToRoad[2].startQueue.push(car);
-//     else if(car->_nextRoad == _outToRoad[3].roadId)
-//         _outToRoad[3].startQueue.push(car);
-//     else
-//     {
-//         assert(0);//表示没有找到路返回失败
-//     }
-//     return 1;
-// }
+void Cross::delCarFromPool(Car * car)
+{
+    size_t n = _carPool.size();
+    for(size_t i = 0u; i<n; ++i)
+    {
+        if(_carPool[i] == car)
+        {
+            _carPool.erase(_carPool.begin()+i);
+            --i;
+            --n;
+        }
+    }
+}
 
 
-// int8_t Cross::outputCarToRoad()
-// {
-//     for(int i = 0; i<4; ++i)
-//     {
-//         if(_outToRoad[i].roadId == -1)continue;//把没有路的排除掉
-//         Road *road = Road::roads[_outToRoad[i].roadId - ROAD_INDEX];
-//         int16_t lenToCross = 0;
-//         while(!_outToRoad[i].DQueue.empty() || !_outToRoad[i].LQueue.empty() || !_outToRoad[i].RQueue.empty())
-//         {
-//             while(!_outToRoad[i].DQueue.empty() &&  _outToRoad[i].DQueue.front()->_distanceToCross == lenToCross)//DQueue中第一排的
-//             {
-//                 _outToRoad[i].outQueue.push(_outToRoad[i].DQueue.front());//先调度直走的第一排的车辆
-//                 _outToRoad[i].DQueue.pop();
-//             }
-//             while(!_outToRoad[i].LQueue.empty() &&  _outToRoad[i].LQueue.front()->_distanceToCross == lenToCross)//LQueue中第一排的
-//             {
-//                 _outToRoad[i].outQueue.push(_outToRoad[i].LQueue.front());//调度左拐的第一排的车辆
-//                 _outToRoad[i].LQueue.pop();
-//             }
-//             while(!_outToRoad[i].RQueue.empty() &&  _outToRoad[i].RQueue.front()->_distanceToCross == lenToCross)//RQueue中第一排的
-//             {
-//                 _outToRoad[i].outQueue.push(_outToRoad[i].RQueue.front());//调度右拐的第一排的车辆
-//                 _outToRoad[i].RQueue.pop();
-//             }
-//             ++lenToCross;
-//         }
-//         while(!_outToRoad[i].startQueue.empty())
-//         {
-//             _outToRoad[i].outQueue.push(_outToRoad[i].startQueue.front());
-//             _outToRoad[i].startQueue.pop();
-//         }
-//         assert(_outToRoad[i].DQueue.empty() && _outToRoad[i].LQueue.empty() && _outToRoad[i].RQueue.empty() && _outToRoad[i].startQueue.empty());
-//         road->addCarsToRoad(_outToRoad[i].outQueue); //把入口内的车输出到对应的road上
-//         assert(_outToRoad[i].outQueue.empty());
-//     }
-//     return 0;
-// }
+int8_t Cross::processStartCar(Map &map, Car* car)
+{
+    car->_preCross = car->_curCross;
+    car->_curCross = car->_nextCross;
+    car->_nextCross = car->searchPath(map);//_nextRoad已经更新为要出发的road  _toturn
+    /*判断一下当前路段会不会很度堵，jams大的话就不出来*/
+    if(Road::roads[car->_nextRoad - ROAD_INDEX]->getJams(car->_curCross) > 0.5f)
+    {
+            car->setStatusStop();
+            car->_startTime = car->_startTime + 1;
+            car->_preCross = car->_from;
+            car->_curCross = car->_from;
+            car->_nextCross = car->_from;
+            car->_atRoad = -1;
+            car->_nextRoad = -1;
+            car->_turnto = isForward;
+            return 0;
+    }
+    Road::roads[car->_nextRoad - ROAD_INDEX]->addNumOfWaiteCar();//因为起步车辆加入road会使numWait凭空-1;所以得先+1；
+    Road::roads[car->_nextRoad - ROAD_INDEX]->addCarToRoad(car);
+
+    return 1;
+}

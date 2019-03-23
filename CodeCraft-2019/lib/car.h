@@ -14,7 +14,7 @@
 
 using namespace std;
 
-enum TURN {isLeft=0, isForward=1, isRight=2, none=-1};
+enum TURN {isRight=0, isLeft=1, isForward=2, none=-1};
 
 enum RUNSTATUS {isStop=0, isRuning=1, isEnd=2};
 
@@ -24,84 +24,7 @@ class Cross;
 class Car
 {
 public:
-    Car(std::vector<int> &res);
-    // Car(uint32_t _id, int8_t _from, int8_t _to, int8_t _maxSpeed, uint32_t _planeTime)
-    //    :id(_id),
-    //     from(_from),
-    //     to(_to),
-    //     maxSpeed(_maxSpeed),
-    //     planeTime(_planeTime),
-    //     curCross(_from),
-    //     turnto(isForward),
-    //     status(isStop)
-    //     {}
-    // ~Car(){}
-
-
-
-    /*车辆根据地图自己搜索下一个路径
-    输入：起始地点和终点以及地图
-    输出：下一个cross的id
-    更新了_nextRoad _turnto
-    */
-    int searchPath(Map &map);
-
-    /*更新岔路口*/
-    void updataCross(int nextCross);
-
-    /*更新道路*/
-    void updataRoad(int nextRoad);
-
-    RUNSTATUS getStatus()
-    {
-        return _status;
-    }
-
-    void setStatusRuning()
-    {
-        _status = isRuning;
-        ++numRuning;
-        --numStop;
-    }
-    void setStatusEnd()
-    {
-        _status = isEnd;
-        --numRuning;
-        ++numEnd;
-    }
-    void setStatusStop()//用于车子启动失败
-    {
-        assert(_status == isRuning);
-        _status = isStop;
-        --numRuning;
-        ++numStop;
-    }
-
-    void setStartTime(uint32_t turntime)
-    {
-        _startTime = turntime;
-    }
-
-    // Road* getNextRoad()
-    // {
-    //     return Road::roads[_nextRoad-ROAD_INDEX];
-    // }
-    // Cross* getCurCross()
-    // {
-    //     return Cross::crosses[_curCross-CROSS_INDEX];
-    // }
-
-    static void readCars(string file);
-
-    /*初始化所有车辆*/
-    static void initCars(string file);
-
-    /*车辆调度函数,控制车辆的启动*/
-    static void Scheduler(Map &map);
-
-    int getScore(int distance, int _curCross, int nextRoadId);
-
-    /*初始化后所有车的指针数组，
+/*初始化后所有车的指针数组，
     Car::cars[i]就是第i辆车的指针*/
     static vector<Car *> cars;
 
@@ -154,6 +77,82 @@ public:
     int16_t _distanceToCross;
     
     bool _isEndStatusOnRoad;
+
+    Car(std::vector<int> &res);
+
+    TURN whereToTurn(int &atRoad, int &nextRoad, vector<int>& nextRoadvector);
+
+    /*车辆根据地图自己搜索下一个路径
+    输入：起始地点和终点以及地图
+    输出：下一个cross的id
+    更新了_nextRoad _turnto
+    */
+    int searchPath(Map &map);
+
+    /*把车移动到自己的下一个目标入口，必须确保下一个road更新了*/
+    void moveToNextRoad();
+
+    /*车到达终点*/
+    void moveToEnd();
+
+    // /*更新岔路口*/
+    // void updataCross(int nextCross);
+
+    // /*更新道路*/
+    // void updataRoad(int nextRoad);
+
+    RUNSTATUS getStatus()
+    {
+        return _status;
+    }
+
+    void setStatusRuning()
+    {
+        _status = isRuning;
+        ++numRuning;
+        --numStop;
+    }
+    void setStatusEnd()
+    {
+        _status = isEnd;
+        --numRuning;
+        ++numEnd;
+    }
+    void setStatusStop()//用于车子启动失败
+    {
+        assert(_status == isRuning);
+        _status = isStop;
+        --numRuning;
+        ++numStop;
+    }
+
+    void setStartTime(uint32_t turntime)
+    {
+        _startTime = turntime;
+    }
+
+    Road* getNextRoad()
+    {
+        return Road::roads[_nextRoad-ROAD_INDEX];
+    }
+    Road* getAtRoad()
+    {
+        return Road::roads[_atRoad-ROAD_INDEX];
+    }
+    Cross* getCurCross()
+    {
+        return Cross::crosses[_curCross-CROSS_INDEX];
+    }
+
+    static void readCars(string file);
+
+    /*初始化所有车辆*/
+    static void initCars(string file);
+
+    /*车辆调度函数,控制车辆的启动*/
+    static void Scheduler(Map &map);
+
+    int getScore(int distance, int _curCross, int nextRoadId);
 
 };
 
