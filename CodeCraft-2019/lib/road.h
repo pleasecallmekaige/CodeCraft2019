@@ -10,7 +10,7 @@
 /*
 (道路id，道路长度，最高限速，车道数目，起始点id，终点id，是否双向)
  */
-#define ROAD_INDEX 5000
+//#define ROAD_INDEX 5000
 
 using namespace std;
 
@@ -21,6 +21,8 @@ class Road
 public:
     /*road的id*/
     int _id;
+    /*索引*/
+    int _index;
     /*road的长度*/
     int16_t _length;
     /*当前道路车的最高速度*/
@@ -45,7 +47,7 @@ public:
     std::vector<std::vector<Car *>> carsInRoadToFrom;//存放当前道路上反向行驶的车id
 
     /*Road的构造函数*/
-    Road(vector<int>& oneRoad);
+    Road(vector<int>& oneRoad, int index);
 
     /*所有道路*/
     static map<int,Road *> roads;

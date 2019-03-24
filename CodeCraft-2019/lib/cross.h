@@ -10,23 +10,10 @@
 
 using namespace std;
 
-#define CROSS_INDEX 1
+//#define CROSS_INDEX 1
 
 class Road;
 class Car;
-
-// struct CrossToRoad
-// {
-//     /*对应路口的id号*/
-//     int roadId;
-
-//     queue<Car* > DQueue;
-//     queue<Car* > LQueue;
-//     queue<Car* > RQueue;
-//     queue<Car* > startQueue;
-//     queue<Car* > outQueue;
-
-// };
 
 class Cross
 {
@@ -36,6 +23,8 @@ public:
     static map<int,Cross *> crosses;
 
     int _id;
+    /*用来查找邻接矩阵*/
+    int _index;
     /*一个时间片内调度的次数*/
     int _processNum;
 
@@ -49,7 +38,7 @@ public:
  
 
     /*Cross的构造函数*/
-    Cross(vector<int>& oneCross, map<int, Road *>& roads);
+    Cross(vector<int>& oneCross, map<int, Road *>& roads, int index);
 
     void processEachCross(Map& cityMap);
 
@@ -58,7 +47,7 @@ public:
     // int8_t outputCarToRoad();
 
     /*static function*/
-    static void initCrosses(Map &cityMap, map<int, Road *>& roads);
+    static void initCrosses(Map &cityMap);
 
 
     void processEachRoad(Road * road, Map& cityMap);
