@@ -4,8 +4,9 @@
 #include <string>
 #include <vector>
 #include <queue>
+#include <map>
 
-#include "map.h"
+#include "mymap.h"
 
 using namespace std;
 
@@ -31,7 +32,8 @@ class Cross
 {
 public:
     /*所有的路口*/
-    static vector<Cross *> crosses;
+    //static vector<Cross *> crosses;
+    static map<int,Cross *> crosses;
 
     int _id;
     /*一个时间片内调度的次数*/
@@ -47,20 +49,20 @@ public:
  
 
     /*Cross的构造函数*/
-    Cross(vector<int>& oneCross, vector<Road *>& roads);
+    Cross(vector<int>& oneCross, map<int, Road *>& roads);
 
-    void processEachCross(Map& map);
+    void processEachCross(Map& cityMap);
 
-    int8_t processStartCar(Map &map, Car* car);
+    int8_t processStartCar(Map &cityMap, Car* car);
 
     // int8_t outputCarToRoad();
 
     /*static function*/
-    static void initCrosses(Map &map, vector<Road *>& roads);
+    static void initCrosses(Map &cityMap, map<int, Road *>& roads);
 
 
-    void processEachRoad(Road * road, Map& map);
-    void addCarToPool(Car * car, Map& map);
+    void processEachRoad(Road * road, Map& cityMap);
+    void addCarToPool(Car * car, Map& cityMap);
     void delCarFromPool(Car * car);
 
 private:

@@ -4,8 +4,9 @@
 #include<iostream>
 #include <vector>
 #include <queue>
+#include <map>
 
-#include "map.h"
+#include "mymap.h"
 /*
 (道路id，道路长度，最高限速，车道数目，起始点id，终点id，是否双向)
  */
@@ -47,7 +48,7 @@ public:
     Road(vector<int>& oneRoad);
 
     /*所有道路*/
-    static vector<Road *> roads;
+    static map<int,Road *> roads;
 
     static int numOfCarInRoads;
 
@@ -66,7 +67,7 @@ public:
     // }
 
     /*static function*/
-    static void initRoads(Map &map);
+    static void initRoads(Map &cityMap);
 
     void driveOneChannel(vector<Car *>& oneChannel);
 
@@ -83,8 +84,6 @@ public:
     输入len:在当前路段的distenceToCross
     */
     int canAddToButton(const Car* car);
-
-    //void processRoad(Map & map);
 
     void addCarToRoad(Car * car); //将路口传来的车加到当前道路上
 

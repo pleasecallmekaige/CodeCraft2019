@@ -6,7 +6,7 @@
 (道路id，道路长度，最高限速，车道数目，起始点id，终点id，是否双向)
  */
 
-vector<Road *> Road::roads;
+map<int, Road*>  Road::roads;
 int Road::numOfCarInRoads = 0;
 
 Road::Road(vector<int>& oneRoad)
@@ -27,12 +27,13 @@ Road::Road(vector<int>& oneRoad)
         carsInRoadToFrom.resize(_channel);
     }
 
-void Road::initRoads(Map & map) 
+void Road::initRoads(Map & cityMap) 
 {
-    int n = map.road.size();
+    int n = cityMap.road.size();
     for (int i = 0; i < n; ++i) 
     {
-        Road::roads.push_back(new Road(map.road[i]));
+        Road * road = new Road(cityMap.road[i]);
+        Road::roads.insert(map<int, Road *>::value_type(road->_id, road));
     }
 }
 
@@ -184,7 +185,6 @@ void Road::addCarToRoad(Car* car) {
             if(NULL==car->_atRoad)
             {//起步的车出不去，那么等待下次出去，把状态都恢复到初始化
                 car->setStatusStop();
-                //Road::roads[car->_nextRoad - ROAD_INDEX]->delNumOfWaiteCar();
                 car->_startTime = car->_startTime + 1;
                 car->_preCross = car->_from;
                 car->_curCross = car->_from;

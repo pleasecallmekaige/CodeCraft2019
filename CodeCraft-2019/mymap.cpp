@@ -1,4 +1,4 @@
-#include "map.h"
+#include "mymap.h"
 #include "cross.h"
 
 Map::Map(string roadfile, string crossfile)

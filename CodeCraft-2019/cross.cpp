@@ -5,7 +5,7 @@
 #include "road.h"
 #include "car.h"
 
-vector<Cross *> Cross::crosses;
+map<int,Cross *> Cross::crosses;
 
 void swap(Road*& a, Road*& b)
 {
@@ -39,7 +39,7 @@ void mycomp(vector<Road*>& eachRoad)
     }
 }
 
-Cross::Cross(vector<int>& oneCross, vector<Road *>& roads)
+Cross::Cross(vector<int>& oneCross, map<int, Road *>& roads)
    :_id(oneCross[0]),
     _processNum(0)
 {
@@ -47,10 +47,10 @@ Cross::Cross(vector<int>& oneCross, vector<Road *>& roads)
     _Road[1] = NULL;
     _Road[2] = NULL;
     _Road[3] = NULL;
-    if(oneCross[1] != -1) _Road[0] = roads[oneCross[1] - ROAD_INDEX];
-    if(oneCross[2] != -1) _Road[1] = roads[oneCross[2] - ROAD_INDEX];
-    if(oneCross[3] != -1) _Road[2] = roads[oneCross[3] - ROAD_INDEX];
-    if(oneCross[4] != -1) _Road[3] = roads[oneCross[4] - ROAD_INDEX];
+    if(oneCross[1] != -1) _Road[0] = roads[oneCross[1]];
+    if(oneCross[2] != -1) _Road[1] = roads[oneCross[2]];
+    if(oneCross[3] != -1) _Road[2] = roads[oneCross[3]];
+    if(oneCross[4] != -1) _Road[3] = roads[oneCross[4]];
 
     for(int i = 0; i<4; ++i)
     {
@@ -61,19 +61,20 @@ Cross::Cross(vector<int>& oneCross, vector<Road *>& roads)
 }
 
 /*static function*/
-void Cross::initCrosses(Map &map, vector<Road *>& roads)
+void Cross::initCrosses(Map &cityMap, map<int, Road *>& roads)
 {
-    int n = map.cross.size();
+    int n = cityMap.cross.size();
     for(int i = 0; i<n; ++i)
     {
-        Cross::crosses.push_back(new Cross(map.cross[i], roads));
+        Cross * pcross = new Cross(cityMap.cross[i], roads);
+        Cross::crosses.insert(map<int, Cross *>::value_type(pcross->_id, pcross));
     }
 }
 
-void Cross::addCarToPool(Car * car, Map& map)
+void Cross::addCarToPool(Car * car, Map& cityMap)
 {
     /*搜索路径算法放这里*/
-    car->_nextCross = car->searchPath(map);//_nextRoad已经更新为要出发的road  _toturn
+    car->_nextCross = car->searchPath(cityMap);//_nextRoad已经更新为要出发的road  _toturn
     _carPool.push_back(car);
 }
 
@@ -91,7 +92,7 @@ void Cross::delCarFromPool(Car * car)
     }
 }
 
-void Cross::processEachRoad(Road* proad, Map& map)
+void Cross::processEachRoad(Road* proad, Map& cityMap)
 {
     Car* car = NULL;
     vector<vector<Car*>>& roadvector = (_id==proad->_from)?proad->carsInRoadToFrom:proad->carsInRoadFromTo;
@@ -154,11 +155,11 @@ void Cross::processEachRoad(Road* proad, Map& map)
         delCarFromPool(car);//car已经从road里面删掉了但还要从处理池里面删掉
         car = proad->getFirstCar(_id);
         if(car != NULL)//这条路还能取到车出来的
-            addCarToPool(car, map);//把新的优先级最高的car加入到处理池里面
+            addCarToPool(car, cityMap);//把新的优先级最高的car加入到处理池里面
     }
 }
 
-void Cross::processEachCross(Map& map)
+void Cross::processEachCross(Map& cityMap)
 {
     int pre=0,cur=0;
     // _carPool.clear();//先清空处理池
@@ -168,12 +169,12 @@ void Cross::processEachCross(Map& map)
         {
             Car *car = _sortRoad[i]->getFirstCar(_id);
             if(car != NULL)//这条路还能取到车出来的
-                addCarToPool(car, map);//把新的优先级最高的car加入到处理池里面
+                addCarToPool(car, cityMap);//把新的优先级最高的car加入到处理池里面
         }
     }
     for(size_t i = 0u; i<_sortRoad.size();)//路口id升序遍历
     {
-        processEachRoad(_sortRoad[i], map);
+        processEachRoad(_sortRoad[i], cityMap);
         cur += _sortRoad[i]->_numOfWaitCar;//记录cross每个road的处于wait的车的和
         ++i;
         if(i == _sortRoad.size())//完成一次遍历road
@@ -191,11 +192,11 @@ void Cross::processEachCross(Map& map)
 }
 
 
-int8_t Cross::processStartCar(Map &map, Car* car)
+int8_t Cross::processStartCar(Map &cityMap, Car* car)
 {
     car->_preCross = car->_curCross;
     car->_curCross = car->_nextCross;
-    car->_nextCross = car->searchPath(map);//_nextRoad已经更新为要出发的road  _toturn
+    car->_nextCross = car->searchPath(cityMap);//_nextRoad已经更新为要出发的road  _toturn
     /*判断一下当前路段会不会很堵，jams大的话就不出来*/
     if(car->getNextRoad()->getJams(car->_curCross) > 0.4f)
     {
@@ -209,7 +210,6 @@ int8_t Cross::processStartCar(Map &map, Car* car)
             car->_turnto = isForward;
             return 0;
     }
-    //Road::roads[car->_nextRoad - ROAD_INDEX]->addNumOfWaiteCar();//因为起步车辆加入road会使numWait凭空-1;所以得先+1；
     car->getNextRoad()->addCarToRoad(car);
 
     return 1;

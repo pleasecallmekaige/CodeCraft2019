@@ -5,11 +5,12 @@
 #include <sstream>
 #include <cassert> 
 #include <vector>
+#include <map>
 
-#include "car.h"
-#include "map.h"
+#include "mymap.h"
 #include "cross.h"
 #include "road.h"
+#include "car.h"
 
 using namespace std;
 uint32_t turntime = 1;
@@ -24,10 +25,6 @@ int main(int argc, char *argv[])
 		std::cout << "please input args: carPath, roadPath, crossPath, answerPath" << std::endl;
 		exit(1);
 	}
-	// vector<int> a;
-
-	// a.erase(a.begin());
-	// a[0];
 
 	
 	std::string carPath(argv[1]);
@@ -40,18 +37,22 @@ int main(int argc, char *argv[])
 	// std::cout << "answerPath is " << answerPath << std::endl;
 
 
-	Map map(roadPath,crossPath);
-	Road::initRoads(map);
-	Cross::initCrosses(map, Road::roads);
+	Map cityMap(roadPath,crossPath);
+	Road::initRoads(cityMap);
+	Cross::initCrosses(cityMap, Road::roads);
 	Car::initCars(carPath);	
 	Car::numALL = Car::cars.size();
 	Car::numStop = Car::numALL;//所有未启动的车
+ 
+	// map<int, int> myMaap;
+	// myMaap.insert(map<int, int>::value_type(1, 2));
+	// int b = myMaap[1];
 
 	//mySDL::init();//可视化初始化
 
 	do
 	{
-		Car::Scheduler(map);
+		Car::Scheduler(cityMap);
 		/*启动车辆加到路口*/
 		/*路上的车辆加入cross*/
 		/*路口处理车辆*/

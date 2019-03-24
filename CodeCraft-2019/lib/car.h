@@ -3,7 +3,7 @@
 #include<iostream>
 #include <vector>
 
-#include "map.h"
+#include "mymap.h"
 #include "road.h"
 #include "cross.h"
 
@@ -87,7 +87,7 @@ public:
     输出：下一个cross的id
     更新了_nextRoad _turnto
     */
-    int searchPath(Map &map);
+    int searchPath(Map &cityMap);
 
     /*把车移动到自己的下一个目标入口，必须确保下一个road更新了*/
     void moveToNextRoad();
@@ -135,7 +135,7 @@ public:
     }
     Cross* getCurCross()
     {
-        return Cross::crosses[_curCross-CROSS_INDEX];
+        return Cross::crosses[_curCross];
     }
 
     static void readCars(string file);
@@ -144,7 +144,7 @@ public:
     static void initCars(string file);
 
     /*车辆调度函数,控制车辆的启动*/
-    static void Scheduler(Map &map);
+    static void Scheduler(Map &cityMap);
 
     int getScore(int distance, int _curCross, int nextRoadId);
 
