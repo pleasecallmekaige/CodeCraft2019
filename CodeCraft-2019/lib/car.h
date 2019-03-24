@@ -68,9 +68,9 @@ public:
     /*车的当前速度*/
     int8_t _curSpeed;
     /*当前处于哪条road*/
-    int _atRoad;
+    Road* _atRoad;
     /*接下来走哪条road*/
-    int _nextRoad;
+    Road* _nextRoad;
     /*当前处于哪条channel*/
     int8_t _atChannel;
     /*当前距离Cross的长度*/
@@ -80,7 +80,7 @@ public:
 
     Car(std::vector<int> &res);
 
-    TURN whereToTurn(int &atRoad, int &nextRoad, vector<int>& nextRoadvector);
+    TURN whereToTurn(Road* atRoad, Road* nextRoad, vector<int>& nextRoadvector);
 
     /*车辆根据地图自己搜索下一个路径
     输入：起始地点和终点以及地图
@@ -127,11 +127,11 @@ public:
 
     Road* getNextRoad()
     {
-        return Road::roads[_nextRoad-ROAD_INDEX];
+        return _nextRoad;
     }
     Road* getAtRoad()
     {
-        return Road::roads[_atRoad-ROAD_INDEX];
+        return _atRoad;
     }
     Cross* getCurCross()
     {

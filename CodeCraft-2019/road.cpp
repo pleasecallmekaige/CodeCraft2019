@@ -2,8 +2,6 @@
 #include "cross.h"
 #include "car.h"
 
-int deadCarnum = 0;
-
 /*
 (道路id，道路长度，最高限速，车道数目，起始点id，终点id，是否双向)
  */
@@ -158,7 +156,7 @@ bool Road::ToRoad(Car* car, int lane)
     else
         ++_carNumToFrom;
     //addNumOfCarInRoads();
-    car->_atRoad = _id;
+    car->_atRoad = this;
     assert(lane < _channel);
     car->_atChannel = lane;
     car->_preCross = car->_curCross;
@@ -183,7 +181,7 @@ void Road::addCarToRoad(Car* car) {
         }
         if (lane == _channel)//说明所有的车道都已放满
         {
-            if(-1==car->_atRoad)
+            if(NULL==car->_atRoad)
             {//起步的车出不去，那么等待下次出去，把状态都恢复到初始化
                 car->setStatusStop();
                 //Road::roads[car->_nextRoad - ROAD_INDEX]->delNumOfWaiteCar();
@@ -191,8 +189,8 @@ void Road::addCarToRoad(Car* car) {
                 car->_preCross = car->_from;
                 car->_curCross = car->_from;
                 car->_nextCross = car->_from;
-                car->_atRoad = -1;
-                car->_nextRoad = -1;
+                car->_atRoad = NULL;
+                car->_nextRoad = NULL;
                 car->_turnto = isForward;
             }
             else

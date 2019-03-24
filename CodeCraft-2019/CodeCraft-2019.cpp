@@ -12,7 +12,6 @@
 #include "road.h"
 
 using namespace std;
-extern int deadCarnum;
 uint32_t turntime = 1;
 
 void writeAnswer(string file, vector<Car *>& cars);
@@ -40,12 +39,13 @@ int main(int argc, char *argv[])
 	// std::cout << "crossPath is " << crossPath << std::endl;
 	// std::cout << "answerPath is " << answerPath << std::endl;
 
-	Car::initCars(carPath);	
-	Car::numALL = Car::cars.size();
-	Car::numStop = Car::numALL;//所有未启动的车
+
 	Map map(roadPath,crossPath);
 	Road::initRoads(map);
 	Cross::initCrosses(map, Road::roads);
+	Car::initCars(carPath);	
+	Car::numALL = Car::cars.size();
+	Car::numStop = Car::numALL;//所有未启动的车
 
 	//mySDL::init();//可视化初始化
 
@@ -56,8 +56,8 @@ int main(int argc, char *argv[])
 		/*路上的车辆加入cross*/
 		/*路口处理车辆*/
 		/*路口的车辆出来到路上*/	
-		cout<<"turntime:"<<turntime<<"  "<<"numRuning:"<<Car::numRuning<<"  "<<"carinRoad"<<Road::numOfCarInRoads
-		<<"  "<<"numStop:"<<Car::numStop<<"  "<<"numEnd:"<<Car::numEnd<<"  "<<"dead:"<<deadCarnum<<endl;
+		cout<<"turntime:"<<turntime<<"  "<<"numRuning:"<<Car::numRuning
+		<<"  "<<"numStop:"<<Car::numStop<<"  "<<"numEnd:"<<Car::numEnd<<endl;
 		++turntime;
 		//mySDL::display();//可视化
 	}while(Car::numRuning != 0 || Car::numStop !=0);
