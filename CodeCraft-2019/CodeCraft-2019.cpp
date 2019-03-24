@@ -37,7 +37,7 @@ int main(int argc, char *argv[])
 	Road::initRoads(cityMap);
 	Cross::initCrosses(cityMap);
 	Map::initMap(cityMap);
-	Car::initCars(carPath);	
+	Car::initCars(carPath, cityMap);	
 	Car::numALL = Car::cars.size();
 	Car::numStop = Car::numALL;//所有未启动的车
  
@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
 		/*启动车辆加到路口*/
 		/*路上的车辆加入cross*/
 		/*路口处理车辆*/
-		/*路口的车辆出来到路上*/	
+		/*路口的车辆出来到路上*/
 		cout<<"turntime:"<<turntime<<"  "<<"numRuning:"<<Car::numRuning
 		<<"  "<<"numStop:"<<Car::numStop<<"  "<<"numEnd:"<<Car::numEnd<<endl;
 		++turntime;
