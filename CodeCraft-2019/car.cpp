@@ -1,6 +1,8 @@
 #include "car.h"
 #include "cross.h"
 #include "road.h"
+#include <stdlib.h>
+#include <time.h>
 
 extern uint32_t turntime;
 /*
@@ -37,6 +39,7 @@ Car::Car(std::vector<int> &res)//res就是car.txt的一行
         _nextRoad(NULL),
         _atChannel(0),
         _distanceToCross(0),
+        _priority(0),
         _isEndStatusOnRoad(false)
     {     
     }
@@ -75,7 +78,7 @@ void Car::moveToEnd()
     this->setStatusEnd();
 }
 
-int Car::shortestDistance(Map &cityMap)
+int Car::getShortestDistance(Map &cityMap)
 {
     vector<int> nextRoad;
     vector<int> trueNextRoad;
@@ -114,6 +117,7 @@ int Car::shortestDistance(Map &cityMap)
     }
     assert(resRoad != -1);//没有找到下个路
     assert(resCross != -1);//没有找到下个路口
+
     return score;
 }
 
@@ -217,12 +221,11 @@ void Car::Scheduler(Map &cityMap)
         Road::roads[cityMap.road[i][0]]->updateRoadCondition();
     }
 
-
     /*起步车辆最后加入入口*/
     for (int i=0; i<Car::numALL; ++i )//把启动车辆加入入口
     {
         Car* p = cars[i];
-        if(turntime >= p->_startTime && p->getStatus() == isStop && Car::numRuning <1200)
+        if(turntime >= p->_startTime && p->getStatus() == isStop && Car::numRuning <2000)
         {
             p->setStatusRuning();
             p->setStartTime(turntime);
@@ -236,7 +239,6 @@ void Car::Scheduler(Map &cityMap)
             p->getAtRoad()->addNumOfWaiteCar();//每次处理完都把车的状态设为等待
         }
     }
-
     /*需要善后处理的
     p->_isEndStatusOnRoad = false;//每次时间片完都把所有的车设为等待；
     每个路口的_processNum要清0
@@ -247,21 +249,60 @@ void Car::Scheduler(Map &cityMap)
     }
 }
 
-
-void Car::priorityForEachCar()
+void swap(Car*& a, Car*& b)
 {
-    
+    Car* tmp = a;
+    a = b;
+    b = tmp;
+}
+void Partition(vector<Car*>& data,int begin,int end)
+{
+    if(end-begin<=0)
+        return;
+    int l = begin;
+    int r = end;
+    int small = l-1;
+    while(l<r)
+    {
+        if(data[l]->_priority < data[end]->_priority)
+        {
+            small++;
+            if(small!=l)
+            {
+              swap(data[small],data[l]);
+            }
+        }
+        l++;
+    }
+    small++;
+    swap(data[small],data[end]);
+
+    Partition(data,begin,small-1);
+    Partition(data,small+1,end);
+}
+void qiuckSort(vector<Car*>& data,int length)
+{
+    if(length<=0)
+        return;
+    Partition(data,0,length-1);
 }
 
+#define MAX 400
 
 /*static function*/
-void Car::initCars(string file)
+void Car::initCars(string file, Map &cityMap)
 {
-	Car::readCars(file);
+	readCars(file, cityMap);
+    qiuckSort(cars, cars.size());
+    srand((unsigned)time(0));  
+    for (size_t i=0u; i<cars.size(); ++i )
+    {
+        cars[i]->_startTime = cars[i]->_startTime + (int)MAX * (i/cars.size()) * rand() / (RAND_MAX + 1);
+    }
 }
 
 /*读入car.txt文件 static function*/
-void Car::readCars(string file)
+void Car::readCars(string file, Map &cityMap)
 {
     ifstream infile; 
     infile.open(file.data());   //将文件流对象与文件连接起来 
@@ -278,8 +319,8 @@ void Car::readCars(string file)
 			input>>t;
 			res.push_back(result);
 		}
-		//car * tmp = new car((uint32_t)res[0],(int8_t)res[1],(int8_t)res[2],(int8_t)res[3],(uint32_t)res[4]);
 		cars.push_back(new Car(res));
+        cars.back()->_priority = cars.back()->getShortestDistance(cityMap)/cars.back()->_maxSpeed;
     }
     infile.close();             //关闭文件输入流 
 }
