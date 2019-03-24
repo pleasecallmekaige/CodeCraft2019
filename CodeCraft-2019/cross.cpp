@@ -39,8 +39,9 @@ void mycomp(vector<Road*>& eachRoad)
     }
 }
 
-Cross::Cross(vector<int>& oneCross, map<int, Road *>& roads)
+Cross::Cross(vector<int>& oneCross, map<int, Road *>& roads, int index)
    :_id(oneCross[0]),
+    _index(index),
     _processNum(0)
 {
     _Road[0] = NULL;
@@ -61,12 +62,12 @@ Cross::Cross(vector<int>& oneCross, map<int, Road *>& roads)
 }
 
 /*static function*/
-void Cross::initCrosses(Map &cityMap, map<int, Road *>& roads)
+void Cross::initCrosses(Map &cityMap)
 {
     int n = cityMap.cross.size();
     for(int i = 0; i<n; ++i)
     {
-        Cross * pcross = new Cross(cityMap.cross[i], roads);
+        Cross * pcross = new Cross(cityMap.cross[i], Road::roads, i);
         Cross::crosses.insert(map<int, Cross *>::value_type(pcross->_id, pcross));
     }
 }

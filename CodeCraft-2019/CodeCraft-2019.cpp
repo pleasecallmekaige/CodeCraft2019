@@ -31,22 +31,16 @@ int main(int argc, char *argv[])
 	std::string roadPath(argv[2]);
 	std::string crossPath(argv[3]);
 	std::string answerPath(argv[4]);
-	// std::cout << "carPath is " << carPath << std::endl;
-	// std::cout << "roadPath is " << roadPath << std::endl;
-	// std::cout << "crossPath is " << crossPath << std::endl;
-	// std::cout << "answerPath is " << answerPath << std::endl;
 
 
 	Map cityMap(roadPath,crossPath);
 	Road::initRoads(cityMap);
-	Cross::initCrosses(cityMap, Road::roads);
+	Cross::initCrosses(cityMap);
+	Map::initMap(cityMap);
 	Car::initCars(carPath);	
 	Car::numALL = Car::cars.size();
 	Car::numStop = Car::numALL;//所有未启动的车
  
-	// map<int, int> myMaap;
-	// myMaap.insert(map<int, int>::value_type(1, 2));
-	// int b = myMaap[1];
 
 	//mySDL::init();//可视化初始化
 

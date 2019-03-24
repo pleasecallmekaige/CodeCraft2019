@@ -28,7 +28,7 @@ public:
     void readcross(string file);
 
     /*初始化地图*/
-    void initMap();
+    static void initMap(Map & cityMap);
 
     vector<vector<int>> road;
     vector<vector<int>> cross;

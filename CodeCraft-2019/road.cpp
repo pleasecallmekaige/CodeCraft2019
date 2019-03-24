@@ -9,8 +9,9 @@
 map<int, Road*>  Road::roads;
 int Road::numOfCarInRoads = 0;
 
-Road::Road(vector<int>& oneRoad)
+Road::Road(vector<int>& oneRoad, int index)
     :_id(oneRoad[0]),
+     _index(index),
     _length(oneRoad[1]),
     _limitSpeed(oneRoad[2]),
     _channel(oneRoad[3]),
@@ -32,7 +33,7 @@ void Road::initRoads(Map & cityMap)
     int n = cityMap.road.size();
     for (int i = 0; i < n; ++i) 
     {
-        Road * road = new Road(cityMap.road[i]);
+        Road * road = new Road(cityMap.road[i], i);
         Road::roads.insert(map<int, Road *>::value_type(road->_id, road));
     }
 }

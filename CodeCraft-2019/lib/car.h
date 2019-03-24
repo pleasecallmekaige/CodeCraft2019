@@ -7,7 +7,7 @@
 #include "road.h"
 #include "cross.h"
 
-#define CAR_INDEX 10000
+//#define CAR_INDEX 10000
 /*
 (车辆id，始发地、目的地、最高速度、出发时间)
  */
@@ -147,6 +147,10 @@ public:
     static void Scheduler(Map &cityMap);
 
     int getScore(int distance, int _curCross, int nextRoadId);
+
+    int shortestDistance(Map &cityMap);
+
+    void priorityForEachCar();
 
 };
 
