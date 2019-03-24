@@ -76,11 +76,13 @@ public:
     Car* getFirstCar(int16_t curCross);
 
     /*获取各个车道的尾部能不能加车进来,
-    返回false：就是不能加车进来，
-    返回true:能加进来
+    返回-2：就是不能加车进来,下一条路限速过不去，
+    返回-1：就是不能加车进来前面有等待车辆，
+    返回0：前面堵死但能前进，只能到当前路口最前面，
+    返回1:能加进来
     输入len:在当前路段的distenceToCross
     */
-    bool canAddToButton(Car * car);
+    int canAddToButton(const Car* car);
 
     //void processRoad(Map & map);
 

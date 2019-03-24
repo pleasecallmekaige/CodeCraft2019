@@ -58,10 +58,12 @@ public:
     /*static function*/
     static void initCrosses(Map &map, vector<Road *>& roads);
 
-private:
+
     void processEachRoad(Road * road, Map& map);
     void addCarToPool(Car * car, Map& map);
     void delCarFromPool(Car * car);
+
+private:
 };
 
 #endif

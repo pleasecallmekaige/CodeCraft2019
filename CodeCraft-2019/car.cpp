@@ -59,9 +59,10 @@ void Car::moveToNextRoad()
 {
     Road* pnextRoad = Road::roads[_nextRoad - ROAD_INDEX];
     Road* patRoad = Road::roads[_atRoad - ROAD_INDEX];
-    // vector<vector<Car*>>& fromVector = (_curCross==patRoad->_from)?patRoad->carsInRoadToFrom:patRoad->carsInRoadFromTo;
+    vector<vector<Car*>>& fromVector = (_curCross==patRoad->_from)?patRoad->carsInRoadToFrom:patRoad->carsInRoadFromTo;
     // vector<vector<Car*>>& toVector = (_curCross==pnextRoad->_from)?pnextRoad->carsInRoadFromTo:pnextRoad->carsInRoadToFrom;
-    patRoad->outCarToRoad(this);   
+    patRoad->outCarToRoad(this); 
+    patRoad->driveOneChannel(fromVector[this->_atChannel]);  
     pnextRoad->addCarToRoad(this);//更新车的所有状态
 }
 
@@ -77,7 +78,7 @@ int Car::getScore(int distance, int _curCross, int nextRoadId)
     Road* proad = Road::roads[nextRoadId - ROAD_INDEX];
     float jams = proad->getJams(_curCross);
     assert(jams<1);
-    //if(jams>=0.8)jams=0.79999;
+    if(jams>=0.8)jams=0.79999;
     int a = distance/(1-jams);
     return a;
 }
@@ -111,7 +112,7 @@ int Car::searchPath(Map &map)
     int score = INT32_MAX;
     for(size_t i = 0u; i<nextCross.size(); ++i)
     {
-        int distance = map.map[nextCross[i] - CROSS_INDEX][_to - CROSS_INDEX] + map.map[_curCross - CROSS_INDEX][nextCross[i] - CROSS_INDEX]; 
+        int distance = map.map[nextCross[i] - CROSS_INDEX][_to - CROSS_INDEX]; //+ map.map[_curCross - CROSS_INDEX][nextCross[i] - CROSS_INDEX]; 
         //distance = getScore(distance, _curCross, trueNextRoad[i]);
         if(distance < score && nextCross[i] != _preCross)
         {//出现距离更小的路，且没有掉头返回上一个路口（车辆不允许掉头）
@@ -130,28 +131,6 @@ int Car::searchPath(Map &map)
     return resCross;
 }
 
-
-
-// void Car::updataCross(int nextCross)
-// {
-//     _preCross = _curCross;
-//     _curCross = nextCross;
-//     _answerPath.push_back(_atRoad);
-//     if(_curCross == _to)
-//         setStatusEnd();
-// }
-
-// void Car::updataRoad(int nextCross)
-// { 
-//     _preCross = _curCross;
-//     _curCross = nextCross;
-//     _answerPath.push_back(_atRoad);
-//     if(_curCross == _to)
-//         setStatusEnd();
-// }
-
-
-
 /*static function*/
 void Car::Scheduler(Map &map)
 {
@@ -160,14 +139,15 @@ void Car::Scheduler(Map &map)
     {
         for(size_t i=0u; i<Road::roads.size(); ++i)//调度路上的车
         {
+            assert(Road::roads[i]->_numOfWaitCar >= 0);
             Road::roads[i]->driveAllCarJustOnRoadToEndStatus();
         }
 
         for (size_t i=0u; i<Cross::crosses.size(); ++i )//调度所有路口，通过路口把路上所有优先级最高的车先调度
         {
-            Cross::crosses[i]->processEachCross(map);
+            Cross::crosses[i]->processEachCross(map);              
         }
-        cout<<"WaitCar: "<<Car::numWait<<endl;
+        //cout<<"WaitCar: "<<Car::numWait<<endl;
     } while (Car::numWait != 0);
     
     for(size_t i=0u; i<Road::roads.size(); ++i)//更新路况
@@ -180,10 +160,11 @@ void Car::Scheduler(Map &map)
     for (int i=0; i<Car::numALL; ++i )//把启动车辆加入入口
     {
         Car* p = cars[i];
-            
-        if(turntime >= p->_planeTime && p->getStatus() == isStop && p->_maxSpeed >j && Car::numRuning <500)
+        
+        if(turntime >= p->_startTime && p->getStatus() == isStop && p->_maxSpeed >j && Car::numRuning <150)
         {
             p->setStatusRuning();
+            p->setStartTime(turntime);
             Cross::crosses[p->_from - CROSS_INDEX]->processStartCar(map, p);
         }
         if(p->getStatus() == isRuning) 

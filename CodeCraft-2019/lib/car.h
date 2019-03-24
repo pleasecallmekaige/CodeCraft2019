@@ -95,12 +95,6 @@ public:
     /*车到达终点*/
     void moveToEnd();
 
-    // /*更新岔路口*/
-    // void updataCross(int nextCross);
-
-    // /*更新道路*/
-    // void updataRoad(int nextRoad);
-
     RUNSTATUS getStatus()
     {
         return _status;

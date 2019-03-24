@@ -57,6 +57,7 @@ Cross::Cross(vector<int>& oneCross, vector<Road *>& roads)
         _sortRoad.push_back(_Road[i]);
     }
     mycomp(_sortRoad);
+    assert(_carPool.empty());
 }
 
 /*static function*/
@@ -69,11 +70,116 @@ void Cross::initCrosses(Map &map, vector<Road *>& roads)
     }
 }
 
+void Cross::addCarToPool(Car * car, Map& map)
+{
+    /*搜索路径算法放这里*/
+    car->_nextCross = car->searchPath(map);//_nextRoad已经更新为要出发的road  _toturn
+    _carPool.push_back(car);
+}
+
+void Cross::delCarFromPool(Car * car)
+{
+    size_t n = _carPool.size();
+    for(size_t i = 0u; i<n; ++i)
+    {
+        if(_carPool[i] == car)
+        {
+            _carPool.erase(_carPool.begin()+i);
+            --i;
+            --n;
+        }
+    }
+}
+
+void Cross::processEachRoad(Road* proad, Map& map)
+{
+    Car* car = NULL;
+    vector<vector<Car*>>& roadvector = (_id==proad->_from)?proad->carsInRoadToFrom:proad->carsInRoadFromTo;
+    int flag = 0;
+    car = proad->getFirstCar(_id);
+    while(1)
+    {
+        //car = proad->getFirstCar(_id);
+        if(car == NULL)return;//这个路没有第一优先级可以出来的车
+        assert(car->_atRoad == proad->_id);
+        assert(car->_curCross == _id );
+        if(car->_to == _id)//到达终点
+        {
+            car->moveToEnd();
+            assert(car->_atChannel < proad->_channel);
+            proad->driveOneChannel(roadvector[car->_atChannel]);
+            goto out;
+            // /*处理池的更新*/
+            // delCarFromPool(car);//car已经从road里面删掉了但还要从处理池里面删掉
+            // car = proad->getFirstCar(_id);
+            // if(car != NULL)//这条路还能取到车出来的
+            //     addCarToPool(car, map);//把新的优先级最高的car加入到处理池里面
+            // continue;
+        }
+        /*处理冲突*/
+        for(size_t i=0u; i<_carPool.size(); ++i)
+        {
+            if(_carPool[i]->_id != car->_id)
+            {
+                if(car->_nextRoad == _carPool[i]->_nextRoad && car->_turnto < _carPool[i]->_turnto)
+                {//有别的车也去这个车的目标road且优先级比自己高（有冲突）
+                    return;
+                }
+            }
+        }
+        /*下一条路能不能进，有wait状态的车辆挡着，或者三条路都堵死了*/
+        // if(!car->getNextRoad()->canAddToButton(car))
+        //     return;
+        flag = car->getNextRoad()->canAddToButton(car);
+        if(0 == flag || -2 == flag)
+        {
+            car->_distanceToCross = 0;
+            assert(car->_isEndStatusOnRoad == false);
+            car->_isEndStatusOnRoad = true;
+            car->getAtRoad()->delNumOfWaiteCar();
+            assert(car->_atChannel < proad->_channel);
+            proad->driveOneChannel(roadvector[car->_atChannel]);
+            goto out;
+        }
+        else if(-1 == flag)
+        {
+            return;
+        }
+        assert(1 == flag);
+        
+        /*处理任务书中10.8-(5)Table1中的计算规则*///这个地方放哪里有争议
+        // dif = min(car->getNextRoad()->_limitSpeed, car->_maxSpeed) - car->_distanceToCross;
+        // if(dif<=0)
+        // {
+        //     car->_distanceToCross = 0;
+        //     assert(car->_isEndStatusOnRoad == false);
+        //     car->_isEndStatusOnRoad = true;
+        //     car->getAtRoad()->delNumOfWaiteCar();
+        //     assert(car->_atChannel < proad->_channel);
+        //     proad->driveOneChannel(roadvector[car->_atChannel]);
+        //     goto out;
+        //     // /*处理池的更新*/
+        //     // delCarFromPool(car);//car已经从road里面删掉了但还要从处理池里面删掉
+        //     // car = proad->getFirstCar(_id);
+        //     // if(car != NULL)//这条路还能取到车出来的
+        //     //     addCarToPool(car, map);//把新的优先级最高的car加入到处理池里面
+        //     // continue;
+        // }
+        /*这一辆车调度没有冲突*/
+        assert(car->_isEndStatusOnRoad != true);
+        car->moveToNextRoad();//里面会更新当前车道
+        out:
+        /*处理池的更新*/
+        delCarFromPool(car);//car已经从road里面删掉了但还要从处理池里面删掉
+        car = proad->getFirstCar(_id);
+        if(car != NULL)//这条路还能取到车出来的
+            addCarToPool(car, map);//把新的优先级最高的car加入到处理池里面
+    }
+}
+
 void Cross::processEachCross(Map& map)
 {
     int pre=0,cur=0;
-    if(_id == 31)
-        int a = 9;
     // _carPool.clear();//先清空处理池
     if(_processNum == 0)//每个turntime第一次调度要先构建处理池
     {
@@ -104,94 +210,13 @@ void Cross::processEachCross(Map& map)
 }
 
 
-void Cross::processEachRoad(Road* proad, Map& map)
-{
-    Car* car = NULL;
-    vector<vector<Car*>>& roadvector = (_id==proad->_from)?proad->carsInRoadToFrom:proad->carsInRoadFromTo;
-    car = proad->getFirstCar(_id);
-    while(1)
-    {
-        //car = proad->getFirstCar(_id);
-        if(car == NULL)return;//这个路没有第一优先级可以出来的车
-        if(car->_curCross != _id)
-            int b = 9;
-        assert(car->_atRoad == proad->_id);
-        assert(car->_curCross == _id );
-        if(car->_to == _id)//到达终点
-        {
-            car->moveToEnd();
-            proad->driveOneChannel(roadvector[car->_atChannel]);//调整一次车道
-            /*处理池的更新*/
-            delCarFromPool(car);//car已经从road里面删掉了但还要从处理池里面删掉
-            car = proad->getFirstCar(_id);
-            if(car != NULL)//这条路还能取到车出来的
-                addCarToPool(car, map);//把新的优先级最高的car加入到处理池里面
-            continue;
-        }
-        /*处理冲突*/
-        for(size_t i=0u; i<_carPool.size(); ++i)
-        {
-            if(_carPool[i]->_id != car->_id)
-            {
-                if(car->_nextRoad == _carPool[i]->_nextRoad && car->_turnto < _carPool[i]->_turnto)
-                {//有别的车也去这个车的目标road且优先级比自己高（有冲突）
-                    return;
-                }
-            }
-        }
-        /*下一条路能不能进，有wait状态的车辆挡着，或者三条路都堵死了*/
-        if(!car->getNextRoad()->canAddToButton(car))
-            return;
-        
-        /*处理任务书中10.8-(5)Table1中的计算规则*/
-        int dif = min(car->getNextRoad()->_limitSpeed, car->_maxSpeed) - car->_distanceToCross;
-        if(dif<=0)
-        {
-            car->_distanceToCross = 0;
-            car->_isEndStatusOnRoad = true;
-            car->getAtRoad()->delNumOfWaiteCar();
-            proad->driveOneChannel(roadvector[car->_atChannel]);
-        }
-        /*这一辆车调度没有冲突*/
-        car->moveToNextRoad();
-        proad->driveOneChannel(roadvector[car->_atChannel]);
-        /*处理池的更新*/
-        delCarFromPool(car);//car已经从road里面删掉了但还要从处理池里面删掉
-        car = proad->getFirstCar(_id);
-        if(car != NULL)//这条路还能取到车出来的
-            addCarToPool(car, map);//把新的优先级最高的car加入到处理池里面
-    }
-}
-
-void Cross::addCarToPool(Car * car, Map& map)
-{
-    /*搜索路径算法放这里*/
-    car->_nextCross = car->searchPath(map);//_nextRoad已经更新为要出发的road  _toturn
-    _carPool.push_back(car);
-}
-
-void Cross::delCarFromPool(Car * car)
-{
-    size_t n = _carPool.size();
-    for(size_t i = 0u; i<n; ++i)
-    {
-        if(_carPool[i] == car)
-        {
-            _carPool.erase(_carPool.begin()+i);
-            --i;
-            --n;
-        }
-    }
-}
-
-
 int8_t Cross::processStartCar(Map &map, Car* car)
 {
     car->_preCross = car->_curCross;
     car->_curCross = car->_nextCross;
     car->_nextCross = car->searchPath(map);//_nextRoad已经更新为要出发的road  _toturn
     /*判断一下当前路段会不会很度堵，jams大的话就不出来*/
-    if(Road::roads[car->_nextRoad - ROAD_INDEX]->getJams(car->_curCross) > 0.5f)
+    if(Road::roads[car->_nextRoad - ROAD_INDEX]->getJams(car->_curCross) > 0.0f)
     {
             car->setStatusStop();
             car->_startTime = car->_startTime + 1;
@@ -203,7 +228,7 @@ int8_t Cross::processStartCar(Map &map, Car* car)
             car->_turnto = isForward;
             return 0;
     }
-    Road::roads[car->_nextRoad - ROAD_INDEX]->addNumOfWaiteCar();//因为起步车辆加入road会使numWait凭空-1;所以得先+1；
+    //Road::roads[car->_nextRoad - ROAD_INDEX]->addNumOfWaiteCar();//因为起步车辆加入road会使numWait凭空-1;所以得先+1；
     Road::roads[car->_nextRoad - ROAD_INDEX]->addCarToRoad(car);
 
     return 1;

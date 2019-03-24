@@ -55,8 +55,10 @@ void Road::driveOneChannel(vector<Car *>& oneChannel)
             {
                 car->_distanceToCross -= car->_curSpeed;
                 assert(car->_distanceToCross>=0);
+                assert(car->_isEndStatusOnRoad == false);
                 car->_isEndStatusOnRoad = true;
-                delNumOfWaiteCar();
+                --_numOfWaitCar;
+                --Car::numWait;
             }
         }
         else//有车辆阻挡
@@ -66,8 +68,10 @@ void Road::driveOneChannel(vector<Car *>& oneChannel)
             else//前方车辆为终止车辆
             {
                 car->_distanceToCross = oneChannel[i-1]->_distanceToCross + 1;
+                assert(car->_isEndStatusOnRoad == false);
                 car->_isEndStatusOnRoad = true;
-                delNumOfWaiteCar();
+                --_numOfWaitCar;
+                --Car::numWait;
             }
         }
     }
@@ -102,9 +106,9 @@ Car* Road::getFirstCar(int16_t curCross)
         {
             if(roadvector[lane].empty())continue;
             Car* car = roadvector[lane][0];
-            if(car->_distanceToCross == row && !car->_isEndStatusOnRoad)
+            if(car->_distanceToCross == row && car->_isEndStatusOnRoad == false)
             {//按照列优先取到第一辆为wait的车
-
+                    assert(car->_atChannel == lane);
                     return car;
             }
         }
@@ -126,66 +130,42 @@ void Road::delNumOfWaiteCar()
 bool Road::ToRoad(Car* car, int lane) 
 {
     int dif = min(car->_maxSpeed,_limitSpeed) - car->_distanceToCross;//根据任务书中10.8-(5)Table1中的计算规则
-    if(dif<=0)
-        int c = 9;
     assert(dif>0);//必须大于零才正常
     assert(dif<_length);
     assert(car->_curCross == _from || car->_curCross == _to);
-    if(car->_curCross == _from)
-    {
-        if(carsInRoadFromTo[lane].empty())
-        {
-            carsInRoadFromTo[lane].push_back(car);
-            ++_carNumFromTo;
-            car->_distanceToCross = _length - dif;
+    vector<vector<Car*>>& toVector = (car->_curCross==_from)?carsInRoadFromTo:carsInRoadToFrom;
 
-        }
-        else if((_length - 1) != carsInRoadFromTo[lane].back()->_distanceToCross)
-        {
-            if(_length - dif <= carsInRoadFromTo[lane].back()->_distanceToCross)
-                car->_distanceToCross = carsInRoadFromTo[lane].back()->_distanceToCross + 1;
-            else 
-                car->_distanceToCross = _length - dif;
-            carsInRoadFromTo[lane].push_back(car);
-            ++_carNumFromTo;
-        }
-        else
-        {
-            return false;
-        }
+    if(toVector[lane].empty())
+    {
+        toVector[lane].push_back(car);
+        car->_distanceToCross = _length - dif;
+    }
+    else if((_length - 1) != toVector[lane].back()->_distanceToCross)
+    {
+        if(_length - dif <= toVector[lane].back()->_distanceToCross)
+            car->_distanceToCross = toVector[lane].back()->_distanceToCross + 1;
+        else 
+            car->_distanceToCross = _length - dif;
+        toVector[lane].push_back(car);
     }
     else
     {
-        if(carsInRoadToFrom[lane].empty())
-        {
-            carsInRoadToFrom[lane].push_back(car);
-            ++_carNumToFrom;
-            car->_distanceToCross = _length - dif;
-        }
-        else if((_length - 1) != carsInRoadToFrom[lane].back()->_distanceToCross)
-        {
-            if(_length - dif <= carsInRoadToFrom[lane].back()->_distanceToCross)
-                car->_distanceToCross = carsInRoadToFrom[lane].back()->_distanceToCross + 1;
-            else 
-                car->_distanceToCross = _length - dif;
-            carsInRoadToFrom[lane].push_back(car);
-            ++_carNumToFrom;
-        }
-        else
-        {
-            return false;
-        }
+        return false;
     }
+
+    if(car->_curCross==_from)
+        ++_carNumFromTo;
+    else
+        ++_carNumToFrom;
     //addNumOfCarInRoads();
     car->_atRoad = _id;
+    assert(lane < _channel);
     car->_atChannel = lane;
     car->_preCross = car->_curCross;
     car->_curCross = car->_nextCross;
     car->_answerPath.push_back(_id);
     car->_curSpeed = min(car->_maxSpeed,_limitSpeed);
-    car->_isEndStatusOnRoad = true;
-    ++_numOfWaitCar;
-    delNumOfWaiteCar();
+    
     return true;
 }
 
@@ -206,7 +186,7 @@ void Road::addCarToRoad(Car* car) {
             if(-1==car->_atRoad)
             {//起步的车出不去，那么等待下次出去，把状态都恢复到初始化
                 car->setStatusStop();
-                Road::roads[car->_nextRoad - ROAD_INDEX]->delNumOfWaiteCar();
+                //Road::roads[car->_nextRoad - ROAD_INDEX]->delNumOfWaiteCar();
                 car->_startTime = car->_startTime + 1;
                 car->_preCross = car->_from;
                 car->_curCross = car->_from;
@@ -231,33 +211,39 @@ void Road::outCarToRoad(Car * car)
         --_carNumToFrom;
     else
         --_carNumFromTo;
+    assert(toVector[car->_atChannel][0] == car);
     toVector[car->_atChannel].erase(toVector[car->_atChannel].begin());//删除第一个元素
+    assert(car->_isEndStatusOnRoad == false);
+    car->_isEndStatusOnRoad = true;
+    --_numOfWaitCar;
+    --Car::numWait;
     //outNumOfCarInRoads();
 }
 
-bool Road::canAddToButton(Car* car)
+int Road::canAddToButton(const Car* car)
 {
     vector<vector<Car*>>& toVector = (car->_curCross==_from)?carsInRoadFromTo:carsInRoadToFrom;
     int dif = min(car->_maxSpeed,_limitSpeed) - car->_distanceToCross;//根据任务书中10.8-(5)Table1中的计算规则
+    if(dif<=0)return -2;
     for(int lane = 0; lane<_channel; ++lane)
     {
-        if(toVector[lane].empty())return true;
+        if(toVector[lane].empty())return 1;
         Car * backCar = toVector[lane].back();
         if(_length - dif <= backCar->_distanceToCross)//有阻挡
         {
             if(!backCar->_isEndStatusOnRoad)//阻挡车辆处于wait状态
-                return false;
+                return -1;
             else if(backCar->_distanceToCross == _length-1)//阻挡车辆处于end状态但在最后一行
                 continue;//换行
             else//阻挡车辆处于end状态且不在最后一行
-                return true;
+                return 1;
         }
         else
         {
-            return true;
+            return 1;
         }
     }
-    return false;
+    return 0;
 }
 
 
