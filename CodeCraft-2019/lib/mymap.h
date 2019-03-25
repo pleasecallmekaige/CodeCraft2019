@@ -7,6 +7,7 @@
 #include <sstream>
 #include <cassert> 
 #include <vector>
+#include <map>
 
 using namespace std;
 /*
@@ -14,6 +15,8 @@ using namespace std;
  */
 
 typedef int MAP_INT;
+
+class Cross;
 
 class Map
 {
@@ -28,11 +31,13 @@ public:
     void readcross(string file);
 
     /*初始化地图*/
-    static void initMap(Map & cityMap);
+    static void initMap(Map & cityMap, map<int, Cross*> crosses);
+
+    int getDistance(int cross1_id, int cross2_id);
 
     vector<vector<int>> road;
     vector<vector<int>> cross;
-    vector<vector<MAP_INT>> map;
+    vector<vector<MAP_INT>> mymap;
 };
 
 

@@ -40,27 +40,27 @@ Car::Car(std::vector<int> &res)//res就是car.txt的一行
         _atChannel(0),
         _distanceToCross(0),
         _priority(0),
-        _isEndStatusOnRoad(false)
+        _isEndStatusOnRoad(true)
     {     
     }
 
 
-TURN Car::whereToTurn(Road* atRoad, Road* nextRoad, vector<int>& nextRoadvector)
+TURN Car::whereToTurn(Road* atRoad, Road* nextRoad, Road** nextRoadvector)
 {
     int f=-1,t=-1;
     if(NULL == atRoad)
         return isForward;
-    for(int i = 1; i<=4; ++i)//第0个是crossid，从第一个开始
+    for(int i = 0; i<4; ++i)//第0个是crossid，从第一个开始
     {
-        if(atRoad->_id == nextRoadvector[i])
+        if(nextRoadvector[i] != NULL && atRoad->_id == nextRoadvector[i]->_id)
             f = i;
-        if(nextRoad->_id == nextRoadvector[i])
+        if(nextRoadvector[i] != NULL && nextRoad->_id == nextRoadvector[i]->_id)
             t = i;
     }
-    return TURNTABLE[t-1][f-1];
+    return TURNTABLE[t][f];
 }
 
-void Car::moveToNextRoad()
+void Car::moveToNextRoad(int lane)
 {
     Road* pnextRoad = _nextRoad;
     Road* patRoad = _atRoad;
@@ -68,7 +68,7 @@ void Car::moveToNextRoad()
     // vector<vector<Car*>>& toVector = (_curCross==pnextRoad->_from)?pnextRoad->carsInRoadFromTo:pnextRoad->carsInRoadToFrom;
     patRoad->outCarToRoad(this); 
     patRoad->driveOneChannel(fromVector[this->_atChannel]);  
-    pnextRoad->addCarToRoad(this);//更新车的所有状态
+    pnextRoad->addCarToRoad(this, lane);//更新车的所有状态
 }
 
 void Car::moveToEnd()
@@ -80,33 +80,35 @@ void Car::moveToEnd()
 
 int Car::getShortestDistance(Map &cityMap)
 {
-    vector<int> nextRoad;
+    Road** nextRoad;
     vector<int> trueNextRoad;
     vector<int> nextCross;
     int resCross = -1;
     int resRoad = -1;
-    nextRoad = cityMap.cross[Cross::crosses[_curCross]->_index];
-    for(int i = 1; i<=4; ++i)//第0个是crossid，从第一个开始
+    //nextRoad = cityMap.cross[Cross::crosses[_curCross]->_index];
+    nextRoad = Cross::crosses[_curCross]->_Road;
+    for(int i = 0; i<4; ++i)
     {
-        if(nextRoad[i] != -1)
+        if(nextRoad[i] != NULL)
         {
             /*处理单向通行的road*/
-            if(cityMap.road[Road::roads[nextRoad[i]]->_index][6] == 1)
+            if(nextRoad[i]->_isDuplex == 1)
             {//查找下一个相邻的路口
-                nextCross.push_back((cityMap.road[Road::roads[nextRoad[i]]->_index][4] == _curCross)? cityMap.road[Road::roads[nextRoad[i]]->_index][5]:cityMap.road[Road::roads[nextRoad[i]]->_index][4]);
-                trueNextRoad.push_back(nextRoad[i]);
+                nextCross.push_back((nextRoad[i]->_from == _curCross)?nextRoad[i]->_to:nextRoad[i]->_from );
+                //nextCross.push_back((cityMap.road[Road::roads[nextRoad[i]]->_index][4] == _curCross)? cityMap.road[Road::roads[nextRoad[i]]->_index][5]:cityMap.road[Road::roads[nextRoad[i]]->_index][4]);
+                trueNextRoad.push_back(nextRoad[i]->_id);
             }
-            else if(cityMap.road[Road::roads[nextRoad[i]]->_index][6] == 0 && _curCross == cityMap.road[Road::roads[nextRoad[i]]->_index][4])
+            else if(nextRoad[i]->_isDuplex == 0 && _curCross == nextRoad[i]->_from)
             {
-                nextCross.push_back(cityMap.road[Road::roads[nextRoad[i]]->_index][5]);
-                trueNextRoad.push_back(nextRoad[i]);
+                nextCross.push_back(nextRoad[i]->_to);
+                trueNextRoad.push_back(nextRoad[i]->_id);
             }
         }
     }
     int score = INT32_MAX;
     for(size_t i = 0u; i<nextCross.size(); ++i)
     {
-        int distance = cityMap.map[Cross::crosses[nextCross[i]]->_index][Cross::crosses[_to]->_index] + cityMap.map[Cross::crosses[_curCross]->_index][Cross::crosses[nextCross[i]]->_index]; 
+        int distance = cityMap.getDistance(nextCross[i], _to) + cityMap.getDistance(_curCross, nextCross[i]);
         distance = getScore(distance, _curCross, trueNextRoad[i]);
         if(distance < score && nextCross[i] != _preCross)
         {//出现距离更小的路，且没有掉头返回上一个路口（车辆不允许掉头）
@@ -123,33 +125,35 @@ int Car::getShortestDistance(Map &cityMap)
 
 int Car::searchPath(Map &cityMap)
 {
-    vector<int> nextRoad;
+    Road** nextRoad;
     vector<int> trueNextRoad;
     vector<int> nextCross;
     int resCross = -1;
     int resRoad = -1;
-    nextRoad = cityMap.cross[Cross::crosses[_curCross]->_index];
-    for(int i = 1; i<=4; ++i)//第0个是crossid，从第一个开始
+    //nextRoad = cityMap.cross[Cross::crosses[_curCross]->_index];
+    nextRoad = Cross::crosses[_curCross]->_Road;
+    for(int i = 0; i<4; ++i)
     {
-        if(nextRoad[i] != -1)
+        if(nextRoad[i] != NULL)
         {
             /*处理单向通行的road*/
-            if(cityMap.road[Road::roads[nextRoad[i]]->_index][6] == 1)
+            if(nextRoad[i]->_isDuplex == 1)
             {//查找下一个相邻的路口
-                nextCross.push_back((cityMap.road[Road::roads[nextRoad[i]]->_index][4] == _curCross)? cityMap.road[Road::roads[nextRoad[i]]->_index][5]:cityMap.road[Road::roads[nextRoad[i]]->_index][4]);
-                trueNextRoad.push_back(nextRoad[i]);
+                nextCross.push_back((nextRoad[i]->_from == _curCross)?nextRoad[i]->_to:nextRoad[i]->_from );
+                //nextCross.push_back((cityMap.road[Road::roads[nextRoad[i]]->_index][4] == _curCross)? cityMap.road[Road::roads[nextRoad[i]]->_index][5]:cityMap.road[Road::roads[nextRoad[i]]->_index][4]);
+                trueNextRoad.push_back(nextRoad[i]->_id);
             }
-            else if(cityMap.road[Road::roads[nextRoad[i]]->_index][6] == 0 && _curCross == cityMap.road[Road::roads[nextRoad[i]]->_index][4])
+            else if(nextRoad[i]->_isDuplex == 0 && _curCross == nextRoad[i]->_from)
             {
-                nextCross.push_back(cityMap.road[Road::roads[nextRoad[i]]->_index][5]);
-                trueNextRoad.push_back(nextRoad[i]);
+                nextCross.push_back(nextRoad[i]->_to);
+                trueNextRoad.push_back(nextRoad[i]->_id);
             }
         }
     }
     int score = INT32_MAX;
     for(size_t i = 0u; i<nextCross.size(); ++i)
     {
-        int distance = cityMap.map[Cross::crosses[nextCross[i]]->_index][Cross::crosses[_to]->_index] + cityMap.map[Cross::crosses[_curCross]->_index][Cross::crosses[nextCross[i]]->_index]; 
+        int distance = cityMap.getDistance(nextCross[i], _to);// + cityMap.getDistance(_curCross, nextCross[i]);
         distance = getScore(distance, _curCross, trueNextRoad[i]);
         if(distance < score && nextCross[i] != _preCross)
         {//出现距离更小的路，且没有掉头返回上一个路口（车辆不允许掉头）
@@ -164,19 +168,19 @@ int Car::searchPath(Map &cityMap)
     if(_curCross == _to)//特殊处理一下到达终点的车辆的搜索 判定为直行，
     {
         int f;
-        for(int i = 1; i<=4; ++i)//第0个是crossid，从第一个开始
+        for(int i = 0; i<4; ++i)//第0个是crossid，从第一个开始
         {
-            if(_atRoad->_id == nextRoad[i])
+            if(nextRoad[i] != NULL && _atRoad->_id == nextRoad[i]->_id)
             {
                 f = i;//获取到atRoad的索引号
                 break;
             }
         }
-        f = (f+1)%4+1; //获取对面Road的索引号
-        if(nextRoad[f] == -1)
+        f = (f+2)%4; //获取对面Road的索引号
+        if(nextRoad[f] == NULL)
             _nextRoad = NULL;
         else
-            _nextRoad = Road::roads[nextRoad[f]];
+            _nextRoad = nextRoad[f];
         _turnto = isForward;
         return _curCross;
     }
@@ -225,13 +229,20 @@ void Car::Scheduler(Map &cityMap)
     for (int i=0; i<Car::numALL; ++i )//把启动车辆加入入口
     {
         Car* p = cars[i];
-        if(turntime >= p->_startTime && p->getStatus() == isStop && Car::numRuning <2000)
+        if(turntime >= p->_startTime && p->getStatus() == isStop && Car::numRuning <1300)// 
         {
             p->setStatusRuning();
             p->setStartTime(turntime);
             Cross::crosses[p->_from]->processStartCar(cityMap, p);
         }
-     
+    }
+    /*需要善后处理的
+    p->_isEndStatusOnRoad = false;//每次时间片完都把所有的车设为等待；
+    每个路口的_processNum要清0
+    */
+    for (int i=0; i<Car::numALL; ++i )
+    {
+        Car* p = cars[i];
         if(p->getStatus() == isRuning) 
         {
             assert(p->_atRoad != NULL);
@@ -239,10 +250,6 @@ void Car::Scheduler(Map &cityMap)
             p->getAtRoad()->addNumOfWaiteCar();//每次处理完都把车的状态设为等待
         }
     }
-    /*需要善后处理的
-    p->_isEndStatusOnRoad = false;//每次时间片完都把所有的车设为等待；
-    每个路口的_processNum要清0
-    */
     for (size_t i=0u; i<cityMap.cross.size(); ++i )
     {
         Cross::crosses[cityMap.cross[i][0]]->_processNum = 0;
@@ -287,18 +294,20 @@ void qiuckSort(vector<Car*>& data,int length)
     Partition(data,0,length-1);
 }
 
-#define MAX 400
+#define RANGE 10
+#define MAX 420
 
 /*static function*/
 void Car::initCars(string file, Map &cityMap)
 {
 	readCars(file, cityMap);
-    qiuckSort(cars, cars.size());
-    srand((unsigned)time(0));  
-    for (size_t i=0u; i<cars.size(); ++i )
-    {
-        cars[i]->_startTime = cars[i]->_startTime + (int)MAX * (i/cars.size()) * rand() / (RAND_MAX + 1);
-    }
+    // qiuckSort(cars, cars.size());
+    // srand((unsigned)time(0));  
+    // for (size_t i=0u; i<cars.size(); ++i )
+    // {
+    //     int a = MAX*((float)i/cars.size());// + (int)RANGE * (float)rand() / (RAND_MAX + 1);
+    //     cars[i]->_startTime = cars[i]->_startTime + a;
+    // }
 }
 
 /*读入car.txt文件 static function*/

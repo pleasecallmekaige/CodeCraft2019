@@ -82,7 +82,7 @@ public:
 
     Car(std::vector<int> &res);
 
-    TURN whereToTurn(Road* atRoad, Road* nextRoad, vector<int>& nextRoadvector);
+    TURN whereToTurn(Road* atRoad, Road* nextRoad, Road** nextRoadvector);
 
     /*车辆根据地图自己搜索下一个路径
     输入：起始地点和终点以及地图
@@ -91,8 +91,8 @@ public:
     */
     int searchPath(Map &cityMap);
 
-    /*把车移动到自己的下一个目标入口，必须确保下一个road更新了*/
-    void moveToNextRoad();
+    /*把车移动到自己的下一个目标入口，必须确保下一个road更新了,lane 是要放的下一个路的车道*/
+    void moveToNextRoad(int lane);
 
     /*车到达终点*/
     void moveToEnd();

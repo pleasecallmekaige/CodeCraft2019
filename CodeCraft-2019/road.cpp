@@ -31,7 +31,7 @@ Road::Road(vector<int>& oneRoad, int index)
 void Road::initRoads(Map & cityMap) 
 {
     int n = cityMap.road.size();
-    for (int i = 0; i < n; ++i) 
+    for (int i = 0; i < n; ++i)
     {
         Road * road = new Road(cityMap.road[i], i);
         Road::roads.insert(map<int, Road *>::value_type(road->_id, road));
@@ -49,7 +49,8 @@ void Road::driveOneChannel(vector<Car *>& oneChannel)
         {
             if(car->_curSpeed > car->_distanceToCross)//能行驶出路口
             {
-                    car->_isEndStatusOnRoad = false;
+                assert(car->_isEndStatusOnRoad == false);
+                car->_isEndStatusOnRoad = false;
             }
             else//不会出路口
             {
@@ -64,7 +65,10 @@ void Road::driveOneChannel(vector<Car *>& oneChannel)
         else//有车辆阻挡
         {
             if(oneChannel[i-1]->_isEndStatusOnRoad == false)//前方车辆为等待车辆
+            {
+                assert(car->_isEndStatusOnRoad == false);
                 car->_isEndStatusOnRoad = false;
+            }
             else//前方车辆为终止车辆
             {
                 car->_distanceToCross = oneChannel[i-1]->_distanceToCross + 1;
@@ -127,8 +131,53 @@ void Road::delNumOfWaiteCar()
     --Car::numWait;
 }
 
-bool Road::ToRoad(Car* car, int lane) 
-{
+// bool Road::ToRoad(Car* car, int lane) 
+// {
+//     int dif = min(car->_maxSpeed,_limitSpeed) - car->_distanceToCross;//根据任务书中10.8-(5)Table1中的计算规则
+//     assert(dif>0);//必须大于零才正常
+//     assert(dif<_length);
+//     assert(car->_curCross == _from || car->_curCross == _to);
+//     vector<vector<Car*>>& toVector = (car->_curCross==_from)?carsInRoadFromTo:carsInRoadToFrom;
+
+//     if(toVector[lane].empty())
+//     {
+//         toVector[lane].push_back(car);
+//         car->_distanceToCross = _length - dif;
+//     }
+//     else if((_length - 1) != toVector[lane].back()->_distanceToCross)
+//     {
+//         if(_length - dif <= toVector[lane].back()->_distanceToCross)
+//         {
+//             assert(toVector[lane].back()->_isEndStatusOnRoad == true);
+//             car->_distanceToCross = toVector[lane].back()->_distanceToCross + 1;
+//         }
+//         else 
+//             car->_distanceToCross = _length - dif;
+//         toVector[lane].push_back(car);
+//     }
+//     else
+//     {
+//         return false;
+//     }
+
+//     if(car->_curCross==_from)
+//         ++_carNumFromTo;
+//     else
+//         ++_carNumToFrom;
+//     //addNumOfCarInRoads();
+//     car->_atRoad = this;
+//     assert(lane < _channel);
+//     car->_atChannel = lane;
+//     car->_preCross = car->_curCross;
+//     car->_curCross = car->_nextCross;
+//     car->_answerPath.push_back(_id);
+//     car->_curSpeed = min(car->_maxSpeed,_limitSpeed);
+    
+//     return true;
+// }
+
+/*会更新车的大量状态*/
+void Road::addCarToRoad(Car* car, int lane) {
     int dif = min(car->_maxSpeed,_limitSpeed) - car->_distanceToCross;//根据任务书中10.8-(5)Table1中的计算规则
     assert(dif>0);//必须大于零才正常
     assert(dif<_length);
@@ -143,14 +192,17 @@ bool Road::ToRoad(Car* car, int lane)
     else if((_length - 1) != toVector[lane].back()->_distanceToCross)
     {
         if(_length - dif <= toVector[lane].back()->_distanceToCross)
+        {
+            assert(toVector[lane].back()->_isEndStatusOnRoad == true);
             car->_distanceToCross = toVector[lane].back()->_distanceToCross + 1;
+        }
         else 
             car->_distanceToCross = _length - dif;
         toVector[lane].push_back(car);
     }
     else
     {
-        return false;
+        return;
     }
 
     if(car->_curCross==_from)
@@ -165,43 +217,39 @@ bool Road::ToRoad(Car* car, int lane)
     car->_curCross = car->_nextCross;
     car->_answerPath.push_back(_id);
     car->_curSpeed = min(car->_maxSpeed,_limitSpeed);
-    
-    return true;
 }
-
-/*会更新车的大量状态*/
-void Road::addCarToRoad(Car* car) {
-    int lane = 0;
-    while (1) {
-        if (ToRoad(car, lane)) 
-        {
-            break;
-        }
-        else//如果放当前车道放满了就放下一个车道
-        {
-            ++lane;
-        }
-        if (lane == _channel)//说明所有的车道都已放满
-        {
-            if(NULL==car->_atRoad)
-            {//起步的车出不去，那么等待下次出去，把状态都恢复到初始化
-                car->setStatusStop();
-                car->_startTime = car->_startTime + 1;
-                car->_preCross = car->_from;
-                car->_curCross = car->_from;
-                car->_nextCross = car->_from;
-                car->_atRoad = NULL;
-                car->_nextRoad = NULL;
-                car->_turnto = isForward;
-            }
-            else
-            {
-                assert(0);
-            }
-            break;
-        }
-    }
-}
+// void Road::addCarToRoad(Car* car) {
+//     int lane = 0;
+//     while (1) {
+//         if (ToRoad(car, lane)) 
+//         {
+//             break;
+//         }
+//         else//如果放当前车道放满了就放下一个车道
+//         {
+//             ++lane;
+//         }
+//         if (lane == _channel)//说明所有的车道都已放满
+//         {
+//             if(NULL==car->_atRoad)
+//             {//起步的车出不去，那么等待下次出去，把状态都恢复到初始化
+//                 car->setStatusStop();
+//                 car->_startTime = car->_startTime + 1;
+//                 car->_preCross = car->_from;
+//                 car->_curCross = car->_from;
+//                 car->_nextCross = car->_from;
+//                 car->_atRoad = NULL;
+//                 car->_nextRoad = NULL;
+//                 car->_turnto = isForward;
+//             }
+//             else
+//             {
+//                 assert(0);
+//             }
+//             break;
+//         }
+//     }
+// }
 
 void Road::outCarToRoad(Car * car)
 {
@@ -226,23 +274,24 @@ int Road::canAddToButton(const Car* car)
     if(dif<=0)return -2;
     for(int lane = 0; lane<_channel; ++lane)
     {
-        if(toVector[lane].empty())return 1;
+        if(toVector[lane].empty())return lane;
         Car * backCar = toVector[lane].back();
         if(_length - dif <= backCar->_distanceToCross)//有阻挡
         {
-            if(!backCar->_isEndStatusOnRoad)//阻挡车辆处于wait状态
+            if(backCar->_isEndStatusOnRoad == false)//阻挡车辆处于wait状态
                 return -1;
             else if(backCar->_distanceToCross == _length-1)//阻挡车辆处于end状态但在最后一行
                 continue;//换行
             else//阻挡车辆处于end状态且不在最后一行
-                return 1;
+                return lane;
         }
         else
         {
-            return 1;
+            return lane;
         }
+        assert(0);
     }
-    return 0;
+    return -3;
 }
 
 
