@@ -89,7 +89,7 @@ public:
     输出：下一个cross的id
     更新了_nextRoad _turnto
     */
-    int searchPath(Map &cityMap);
+    void searchPath(Map &cityMap);
 
     /*把车移动到自己的下一个目标入口，必须确保下一个road更新了*/
     void moveToNextRoad(int lane);

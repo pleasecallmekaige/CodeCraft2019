@@ -121,7 +121,7 @@ int Car::getShortestDistance(Map &cityMap)
     return score;
 }
 
-int Car::searchPath(Map &cityMap)
+void Car::searchPath(Map &cityMap)
 {
     vector<int> nextRoad;
     vector<int> trueNextRoad;
@@ -178,13 +178,15 @@ int Car::searchPath(Map &cityMap)
         else
             _nextRoad = Road::roads[nextRoad[f]];
         _turnto = isForward;
-        return _curCross;
+        _nextCross = _curCross;
+        return;
     }
     _nextRoad = Road::roads[resRoad];
 
     /*更新turnto*/
     _turnto = whereToTurn(_atRoad, _nextRoad, nextRoad);
-    return resCross;
+    _nextCross = resCross;
+    // return resCross;
 }
 
 int Car::getScore(int distance, int _curCross, int nextRoadId)
@@ -225,7 +227,7 @@ void Car::Scheduler(Map &cityMap)
     for (int i=0; i<Car::numALL; ++i )//把启动车辆加入入口
     {
         Car* p = cars[i];
-        if(turntime >= p->_startTime && p->getStatus() == isStop && Car::numRuning <1300)
+        if(turntime >= p->_startTime && p->getStatus() == isStop && Car::numRuning <1150)
         {
             p->setStatusRuning();
             p->setStartTime(turntime);

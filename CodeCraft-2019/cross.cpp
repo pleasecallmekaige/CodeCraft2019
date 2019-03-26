@@ -75,7 +75,7 @@ void Cross::initCrosses(Map &cityMap)
 void Cross::addCarToPool(Car * car, Map& cityMap)
 {
     /*搜索路径算法放这里*/
-    car->_nextCross = car->searchPath(cityMap);//_nextRoad已经更新为要出发的road  _toturn
+    car->searchPath(cityMap);//_nextRoad已经更新为要出发的road  _toturn
     _carPool.push_back(car);
 }
 
@@ -191,7 +191,7 @@ int8_t Cross::processStartCar(Map &cityMap, Car* car)
 {
     car->_preCross = car->_curCross;
     car->_curCross = car->_nextCross;
-    car->_nextCross = car->searchPath(cityMap);//_nextRoad已经更新为要出发的road  _toturn
+    car->searchPath(cityMap);//_nextRoad已经更新为要出发的road  _toturn
     /*判断一下当前路段会不会很堵，jams大的话就不出来*/
     if(car->getNextRoad()->getJams(car->_curCross) > 0.4f)
     {
