@@ -40,7 +40,7 @@ Car::Car(std::vector<int> &res)//res就是car.txt的一行
         _atChannel(0),
         _distanceToCross(0),
         _priority(0),
-        _isEndStatusOnRoad(false)
+        _isEndStatusOnRoad(true)
     {     
     }
 
@@ -60,7 +60,7 @@ TURN Car::whereToTurn(Road* atRoad, Road* nextRoad, vector<int>& nextRoadvector)
     return TURNTABLE[t-1][f-1];
 }
 
-void Car::moveToNextRoad()
+void Car::moveToNextRoad(int lane)
 {
     Road* pnextRoad = _nextRoad;
     Road* patRoad = _atRoad;
@@ -68,7 +68,7 @@ void Car::moveToNextRoad()
     // vector<vector<Car*>>& toVector = (_curCross==pnextRoad->_from)?pnextRoad->carsInRoadFromTo:pnextRoad->carsInRoadToFrom;
     patRoad->outCarToRoad(this); 
     patRoad->driveOneChannel(fromVector[this->_atChannel]);  
-    pnextRoad->addCarToRoad(this);//更新车的所有状态
+    pnextRoad->addCarToRoad(this, lane);//更新车的所有状态
 }
 
 void Car::moveToEnd()
@@ -149,7 +149,7 @@ int Car::searchPath(Map &cityMap)
     int score = INT32_MAX;
     for(size_t i = 0u; i<nextCross.size(); ++i)
     {
-        int distance = cityMap.map[Cross::crosses[nextCross[i]]->_index][Cross::crosses[_to]->_index] + cityMap.map[Cross::crosses[_curCross]->_index][Cross::crosses[nextCross[i]]->_index]; 
+        int distance = cityMap.map[Cross::crosses[nextCross[i]]->_index][Cross::crosses[_to]->_index];// + cityMap.map[Cross::crosses[_curCross]->_index][Cross::crosses[nextCross[i]]->_index]; 
         distance = getScore(distance, _curCross, trueNextRoad[i]);
         if(distance < score && nextCross[i] != _preCross)
         {//出现距离更小的路，且没有掉头返回上一个路口（车辆不允许掉头）
@@ -225,13 +225,20 @@ void Car::Scheduler(Map &cityMap)
     for (int i=0; i<Car::numALL; ++i )//把启动车辆加入入口
     {
         Car* p = cars[i];
-        if(turntime >= p->_startTime && p->getStatus() == isStop && Car::numRuning <2000)
+        if(turntime >= p->_startTime && p->getStatus() == isStop && Car::numRuning <700)
         {
             p->setStatusRuning();
             p->setStartTime(turntime);
             Cross::crosses[p->_from]->processStartCar(cityMap, p);
         }
-     
+    }
+    /*需要善后处理的
+    p->_isEndStatusOnRoad = false;//每次时间片完都把所有的车设为等待；
+    每个路口的_processNum要清0
+    */
+    for (int i=0; i<Car::numALL; ++i )
+    {
+        Car* p = cars[i];
         if(p->getStatus() == isRuning) 
         {
             assert(p->_atRoad != NULL);
@@ -239,10 +246,6 @@ void Car::Scheduler(Map &cityMap)
             p->getAtRoad()->addNumOfWaiteCar();//每次处理完都把车的状态设为等待
         }
     }
-    /*需要善后处理的
-    p->_isEndStatusOnRoad = false;//每次时间片完都把所有的车设为等待；
-    每个路口的_processNum要清0
-    */
     for (size_t i=0u; i<cityMap.cross.size(); ++i )
     {
         Cross::crosses[cityMap.cross[i][0]]->_processNum = 0;
@@ -287,18 +290,19 @@ void qiuckSort(vector<Car*>& data,int length)
     Partition(data,0,length-1);
 }
 
-#define MAX 400
+#define RANGE 10
+#define MAX 420
 
 /*static function*/
 void Car::initCars(string file, Map &cityMap)
 {
 	readCars(file, cityMap);
-    qiuckSort(cars, cars.size());
-    srand((unsigned)time(0));  
-    for (size_t i=0u; i<cars.size(); ++i )
-    {
-        cars[i]->_startTime = cars[i]->_startTime + (int)MAX * (i/cars.size()) * rand() / (RAND_MAX + 1);
-    }
+    // qiuckSort(cars, cars.size());
+    // srand((unsigned)time(0));  
+    // for (size_t i=0u; i<cars.size(); ++i )
+    // {
+    //     cars[i]->_startTime = cars[i]->_startTime + (int)MAX * (i/cars.size()) * rand() / (RAND_MAX + 1);
+    // }
 }
 
 /*读入car.txt文件 static function*/

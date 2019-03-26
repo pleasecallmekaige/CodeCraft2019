@@ -97,7 +97,7 @@ void Cross::processEachRoad(Road* proad, Map& cityMap)
 {
     Car* car = NULL;
     vector<vector<Car*>>& roadvector = (_id==proad->_from)?proad->carsInRoadToFrom:proad->carsInRoadFromTo;
-    int flag = 0;
+    int lane = 0;
     car = proad->getFirstCar(_id);
     while(1)
     {
@@ -105,13 +105,6 @@ void Cross::processEachRoad(Road* proad, Map& cityMap)
         if(car == NULL)return;//这个路没有第一优先级可以出来的车
         assert(car->getAtRoad()->_id == proad->_id);
         assert(car->_curCross == _id );
-        // if(car->_to == _id)//到达终点
-        // {
-        //     car->moveToEnd();
-        //     assert(car->_atChannel < proad->_channel);
-        //     proad->driveOneChannel(roadvector[car->_atChannel]);
-        //     goto out;
-        // }
         /*处理冲突*/
         for(size_t i=0u; i<_carPool.size(); ++i)
         {
@@ -119,6 +112,7 @@ void Cross::processEachRoad(Road* proad, Map& cityMap)
             {
                 if(car->_nextRoad == _carPool[i]->_nextRoad && car->_turnto < _carPool[i]->_turnto)
                 {//有别的车也去这个车的目标road且优先级比自己高（有冲突）
+                    assert(_carPool[i]->_nextRoad!=NULL);
                     return;
                 }
             }
@@ -131,8 +125,8 @@ void Cross::processEachRoad(Road* proad, Map& cityMap)
             goto out;
         }
         /*下一条路能不能进，有wait状态的车辆挡着，或者三条路都堵死了*/
-        flag = car->getNextRoad()->canAddToButton(car);
-        if(0 == flag || -2 == flag)
+        lane = car->getNextRoad()->canAddToButton(car);
+        if(-3 == lane || -2 == lane)
         {
             car->_distanceToCross = 0;
             assert(car->_isEndStatusOnRoad == false);
@@ -142,15 +136,15 @@ void Cross::processEachRoad(Road* proad, Map& cityMap)
             proad->driveOneChannel(roadvector[car->_atChannel]);
             goto out;
         }
-        else if(-1 == flag)
+        else if(-1 == lane)
         {
             return;
         }
-        assert(1 == flag);
+        assert(lane>=0 && lane < car->getNextRoad()->_channel);
         
         /*这一辆车调度没有冲突*/
         assert(car->_isEndStatusOnRoad != true);
-        car->moveToNextRoad();//里面会更新当前车道
+        car->moveToNextRoad(lane);//里面会更新当前车道
         out:
         /*处理池的更新*/
         delCarFromPool(car);//car已经从road里面删掉了但还要从处理池里面删掉
@@ -211,7 +205,29 @@ int8_t Cross::processStartCar(Map &cityMap, Car* car)
             car->_turnto = isForward;
             return 0;
     }
-    car->getNextRoad()->addCarToRoad(car);
-
+    int lane = car->getNextRoad()->canAddToButton(car);
+    assert(lane != -1);
+    assert(lane != -2);
+    if (lane == -3)//说明所有的车道都已放满
+    {
+        if(NULL==car->_atRoad)
+        {//起步的车出不去，那么等待下次出去，把状态都恢复到初始化
+            car->setStatusStop();
+            car->_startTime = car->_startTime + 1;
+            car->_preCross = car->_from;
+            car->_curCross = car->_from;
+            car->_nextCross = car->_from;
+            car->_atRoad = NULL;
+            car->_nextRoad = NULL;
+            car->_turnto = isForward;
+        }
+        else
+        {
+            assert(0);
+        }
+        return 0;
+    }
+    assert(lane >= 0);
+    car->getNextRoad()->addCarToRoad(car, lane);
     return 1;
 }

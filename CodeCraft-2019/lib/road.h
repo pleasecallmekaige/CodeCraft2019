@@ -81,13 +81,13 @@ public:
     /*获取各个车道的尾部能不能加车进来,
     返回-2：就是不能加车进来,下一条路限速过不去，
     返回-1：就是不能加车进来前面有等待车辆，
-    返回0：前面堵死但能前进，只能到当前路口最前面，
+    返回-3：前面堵死但能前进，只能到当前路口最前面，
     返回1:能加进来
     输入len:在当前路段的distenceToCross
     */
     int canAddToButton(const Car* car);
 
-    void addCarToRoad(Car * car); //将路口传来的车加到当前道路上
+    void addCarToRoad(Car * car, int lane); //将路口传来的车加到当前道路上
 
     void outCarToRoad(Car * car);//处理行使出去的车；
 
@@ -95,7 +95,7 @@ public:
 
     float getJams(int _curCross);
 private:
-    bool ToRoad(Car* car, int lane); //将车加入道路上
+    //bool ToRoad(Car* car, int lane); //将车加入道路上
 };
 
 

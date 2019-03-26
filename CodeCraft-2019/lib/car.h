@@ -92,7 +92,7 @@ public:
     int searchPath(Map &cityMap);
 
     /*把车移动到自己的下一个目标入口，必须确保下一个road更新了*/
-    void moveToNextRoad();
+    void moveToNextRoad(int lane);
 
     /*车到达终点*/
     void moveToEnd();
