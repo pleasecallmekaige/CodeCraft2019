@@ -153,8 +153,8 @@ int Car::searchPath(Map &cityMap)
     int score = INT32_MAX;
     for(size_t i = 0u; i<nextCross.size(); ++i)
     {
-        int distance = cityMap.getDistance(nextCross[i], _to);// + cityMap.getDistance(_curCross, nextCross[i]);
-        distance = getScore(distance, _curCross, trueNextRoad[i]);
+        int distance = cityMap.getDistance(nextCross[i], _to) + cityMap.getDistance(_curCross, nextCross[i]);
+        //distance = getScore(distance, _curCross, trueNextRoad[i]);
         if(distance < score && nextCross[i] != _preCross)
         {//出现距离更小的路，且没有掉头返回上一个路口（车辆不允许掉头）
             score = distance;
@@ -222,20 +222,28 @@ void Car::Scheduler(Map &cityMap)
     
     for(size_t i=0u; i<cityMap.road.size(); ++i)//更新路况
     {
-        Road::roads[cityMap.road[i][0]]->updateRoadCondition();
+        Road::roads[cityMap.road[i][0]]->updateRoadCondition(cityMap);
     }
+    cityMap.updateMatrix();
 
     /*起步车辆最后加入入口*/
+    static int j = 6;
     for (int i=0; i<Car::numALL; ++i )//把启动车辆加入入口
     {
         Car* p = cars[i];
-        if(turntime >= p->_startTime && p->getStatus() == isStop && Car::numRuning <1300)// 
+        if(turntime >= p->_startTime && p->getStatus() == isStop  && Car::numRuning <1300)// 
         {
             p->setStatusRuning();
             p->setStartTime(turntime);
             Cross::crosses[p->_from]->processStartCar(cityMap, p);
         }
     }
+    if(Car::numRuning < 200 && j>0) --j;
+    for(size_t i=0u; i<cityMap.road.size(); ++i)//更新路况
+    {
+        Road::roads[cityMap.road[i][0]]->updateRoadCondition(cityMap);
+    }
+    cityMap.updateMatrix();
     /*需要善后处理的
     p->_isEndStatusOnRoad = false;//每次时间片完都把所有的车设为等待；
     每个路口的_processNum要清0

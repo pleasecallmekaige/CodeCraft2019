@@ -47,10 +47,10 @@ int main(int argc, char *argv[])
 	do
 	{
 		Car::Scheduler(cityMap);
-		/*启动车辆加到路口*/
 		/*路上的车辆加入cross*/
 		/*路口处理车辆*/
 		/*路口的车辆出来到路上*/
+		/*启动车辆加到路口*/
 		cout<<"turntime:"<<turntime<<"  "<<"numRuning:"<<Car::numRuning
 		<<"  "<<"numStop:"<<Car::numStop<<"  "<<"numEnd:"<<Car::numEnd<<endl;
 		++turntime;

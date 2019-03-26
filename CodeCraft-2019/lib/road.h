@@ -91,7 +91,7 @@ public:
 
     void outCarToRoad(Car * car);//处理行使出去的车；
 
-    void updateRoadCondition();
+    void updateRoadCondition(Map& cityMap);
 
     float getJams(int _curCross);
 private:
