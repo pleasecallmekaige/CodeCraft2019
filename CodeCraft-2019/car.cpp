@@ -128,6 +128,7 @@ void Car::searchPath(Map &cityMap)
     vector<int> nextCross;
     int resCross = -1;
     int resRoad = -1;
+    if(_nextRoad != _atRoad)return;//每个路口第一次寻路的时候_nextRoad == _atRoad的，这里是保证每个路口不寻路两次
     nextRoad = cityMap.cross[Cross::crosses[_curCross]->_index];
     for(int i = 1; i<=4; ++i)//第0个是crossid，从第一个开始
     {
@@ -227,7 +228,7 @@ void Car::Scheduler(Map &cityMap)
     for (int i=0; i<Car::numALL; ++i )//把启动车辆加入入口
     {
         Car* p = cars[i];
-        if(turntime >= p->_startTime && p->getStatus() == isStop && Car::numRuning <1150)
+        if(turntime >= p->_startTime && p->getStatus() == isStop && Car::numRuning <1500)
         {
             p->setStatusRuning();
             p->setStartTime(turntime);
