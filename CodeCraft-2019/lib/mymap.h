@@ -17,6 +17,7 @@ using namespace std;
 typedef int MAP_INT;
 
 class Cross;
+class Road;
 
 class Map
 {
@@ -32,6 +33,10 @@ public:
 
     /*初始化地图*/
     static void initMap(Map & cityMap, map<int, Cross*>& crosses);
+
+    void updataOneRoad(Road* road);
+
+    void updateMatrix();
 
     int getDistance(int cross1_id, int cross2_id);
 

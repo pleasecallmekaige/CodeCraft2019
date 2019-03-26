@@ -222,10 +222,12 @@ void Car::Scheduler(Map &cityMap)
     
     for(size_t i=0u; i<cityMap.road.size(); ++i)//更新路况
     {
-        Road::roads[cityMap.road[i][0]]->updateRoadCondition();
+        Road::roads[cityMap.road[i][0]]->updateRoadCondition(cityMap);
     }
+    cityMap.updateMatrix();
 
     /*起步车辆最后加入入口*/
+
     for (int i=0; i<Car::numALL; ++i )//把启动车辆加入入口
     {
         Car* p = cars[i];
@@ -236,6 +238,12 @@ void Car::Scheduler(Map &cityMap)
             Cross::crosses[p->_from]->processStartCar(cityMap, p);
         }
     }
+
+    for(size_t i=0u; i<cityMap.road.size(); ++i)//更新路况
+    {
+        Road::roads[cityMap.road[i][0]]->updateRoadCondition(cityMap);
+    }
+    cityMap.updateMatrix();
     /*需要善后处理的
     p->_isEndStatusOnRoad = false;//每次时间片完都把所有的车设为等待；
     每个路口的_processNum要清0

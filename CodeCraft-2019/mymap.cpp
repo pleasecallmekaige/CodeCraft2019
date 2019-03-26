@@ -1,5 +1,6 @@
 #include "mymap.h"
 #include "cross.h"
+#include "road.h"
 
 Map::Map(string roadfile, string crossfile)
 {
@@ -88,13 +89,33 @@ void Map::initMap(Map & cityMap, map<int, Cross*>& crosses)
             cityMap.mymap[crosses[cityMap.road[i][4]]->_index][crosses[cityMap.road[i][5]]->_index] = cityMap.road[i][1];
         }
     }
-        
+    
     /*Floyd-Warshall算法核心语句*/
     for(k=0;k<n;k++)
         for(i=0;i<n;i++)  
             for(j=0;j<n;j++)  
                 if(cityMap.mymap[i][j]>cityMap.mymap[i][k]+cityMap.mymap[k][j] )   
                     cityMap.mymap[i][j]=cityMap.mymap[i][k]+cityMap.mymap[k][j]; 
+}
+
+/*更新邻接矩阵*/
+void Map::updateMatrix()
+{
+    int i,j,k,n;
+    n = mymap.size();
+    for(k=0;k<n;k++)
+        for(i=0;i<n;i++)  
+            for(j=0;j<n;j++)  
+                if(mymap[i][j]>mymap[i][k]+mymap[k][j])
+                    mymap[i][j]=mymap[i][k]+mymap[k][j]; 
+}
+
+void Map::updataOneRoad(Road* proad)
+{
+
+    mymap[Cross::crosses[proad->_from]->_index] [Cross::crosses[proad->_to]->_index] = 2*proad->_carNumFromTo/proad->_channel + proad->_length;
+    if(proad->_isDuplex == 1)
+        mymap[Cross::crosses[proad->_to]->_index] [Cross::crosses[proad->_from]->_index] = 2*proad->_carNumToFrom/proad->_channel + proad->_length;
 }
 
 /*输入两个路口的id，查询其最短距离*/

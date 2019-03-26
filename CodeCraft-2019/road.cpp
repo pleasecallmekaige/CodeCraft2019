@@ -2,6 +2,7 @@
 #include "cross.h"
 #include "car.h"
 #include "param.h"
+#include "mymap.h"
 
 /*
 (道路id，道路长度，最高限速，车道数目，起始点id，终点id，是否双向)
@@ -223,11 +224,13 @@ int Road::canAddToButton(const Car* car)
 
 
 
-void Road::updateRoadCondition()
+void Road::updateRoadCondition(Map& cityMap)
 {
     assert(_channel*_length != 0);
     _jamsFromTo = (float)_carNumFromTo/(float)((int)_channel*(int)_length);
     _jamsToFrom = (float)_carNumToFrom/(float)((int)_channel*(int)_length);
+
+    cityMap.updataOneRoad(this);
 }
 
 float Road::getJams(int _curCross)
