@@ -53,15 +53,15 @@ void Map::readcross(string file)
     infile.close();             //关闭文件输入流
 }
 
-void Map::initMap(Map & cityMap)
+void Map::initMap(Map & cityMap, map<int, Cross*>& crosses)
 {
     int i,j,k;
     int n = cityMap.cross.size();
     int m = cityMap.road.size();
     /*初始化map[n][n]的大小*/
-    cityMap.map.resize(n);
+    cityMap.mymap.resize(n);
     for(i = 0; i<n; ++i)
-        cityMap.map[i].resize(n);
+        cityMap.mymap[i].resize(n);
 
     /*初始化map[n][n]的内容全为max*/
     for(i=0; i<n; ++i)
@@ -69,9 +69,9 @@ void Map::initMap(Map & cityMap)
         for(j=0;j<n;j++)
         {
             if(i != j)
-                cityMap.map[i][j] = INT16_MAX;
+                cityMap.mymap[i][j] = INT16_MAX;
             else
-                cityMap.map[i][j] = 0;
+                cityMap.mymap[i][j] = 0;
         }
     }
 
@@ -80,12 +80,12 @@ void Map::initMap(Map & cityMap)
     {
         if(1 == cityMap.road[i][6])/*双向通行*/
         {
-            cityMap.map[Cross::crosses[cityMap.road[i][4]]->_index][Cross::crosses[cityMap.road[i][5]]->_index] = cityMap.road[i][1];
-            cityMap.map[Cross::crosses[cityMap.road[i][5]]->_index][Cross::crosses[cityMap.road[i][4]]->_index] = cityMap.road[i][1];
+            cityMap.mymap[crosses[cityMap.road[i][4]]->_index][crosses[cityMap.road[i][5]]->_index] = cityMap.road[i][1];
+            cityMap.mymap[crosses[cityMap.road[i][5]]->_index][crosses[cityMap.road[i][4]]->_index] = cityMap.road[i][1];
         }
         else/*单向通行*/
         {
-            cityMap.map[Cross::crosses[cityMap.road[i][4]]->_index][Cross::crosses[cityMap.road[i][5]]->_index] = cityMap.road[i][1];
+            cityMap.mymap[crosses[cityMap.road[i][4]]->_index][crosses[cityMap.road[i][5]]->_index] = cityMap.road[i][1];
         }
     }
         
@@ -93,7 +93,12 @@ void Map::initMap(Map & cityMap)
     for(k=0;k<n;k++)
         for(i=0;i<n;i++)  
             for(j=0;j<n;j++)  
-                if(cityMap.map[i][j]>cityMap.map[i][k]+cityMap.map[k][j] )   
-                    cityMap.map[i][j]=cityMap.map[i][k]+cityMap.map[k][j]; 
+                if(cityMap.mymap[i][j]>cityMap.mymap[i][k]+cityMap.mymap[k][j] )   
+                    cityMap.mymap[i][j]=cityMap.mymap[i][k]+cityMap.mymap[k][j]; 
 }
 
+/*输入两个路口的id，查询其最短距离*/
+int Map::getDistance(int cross1_id, int cross2_id)
+{
+    return mymap[Cross::crosses[cross1_id]->_index][Cross::crosses[cross2_id]->_index];
+}

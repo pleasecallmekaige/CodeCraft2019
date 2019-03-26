@@ -106,7 +106,7 @@ int Car::getShortestDistance(Map &cityMap)
     int score = INT32_MAX;
     for(size_t i = 0u; i<nextCross.size(); ++i)
     {
-        int distance = cityMap.map[Cross::crosses[nextCross[i]]->_index][Cross::crosses[_to]->_index] + cityMap.map[Cross::crosses[_curCross]->_index][Cross::crosses[nextCross[i]]->_index]; 
+        int distance = cityMap.getDistance(nextCross[i], _to) + cityMap.getDistance(_curCross, nextCross[i]); 
         distance = getScore(distance, _curCross, trueNextRoad[i]);
         if(distance < score && nextCross[i] != _preCross)
         {//出现距离更小的路，且没有掉头返回上一个路口（车辆不允许掉头）
@@ -149,7 +149,7 @@ int Car::searchPath(Map &cityMap)
     int score = INT32_MAX;
     for(size_t i = 0u; i<nextCross.size(); ++i)
     {
-        int distance = cityMap.map[Cross::crosses[nextCross[i]]->_index][Cross::crosses[_to]->_index];// + cityMap.map[Cross::crosses[_curCross]->_index][Cross::crosses[nextCross[i]]->_index]; 
+        int distance = cityMap.getDistance(nextCross[i], _to);// + cityMap.getDistance(_curCross, nextCross[i]); 
         distance = getScore(distance, _curCross, trueNextRoad[i]);
         if(distance < score && nextCross[i] != _preCross)
         {//出现距离更小的路，且没有掉头返回上一个路口（车辆不允许掉头）
@@ -225,7 +225,7 @@ void Car::Scheduler(Map &cityMap)
     for (int i=0; i<Car::numALL; ++i )//把启动车辆加入入口
     {
         Car* p = cars[i];
-        if(turntime >= p->_startTime && p->getStatus() == isStop && Car::numRuning <700)
+        if(turntime >= p->_startTime && p->getStatus() == isStop && Car::numRuning <1300)
         {
             p->setStatusRuning();
             p->setStartTime(turntime);

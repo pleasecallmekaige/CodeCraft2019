@@ -36,7 +36,7 @@ int main(int argc, char *argv[])
 	Map cityMap(roadPath,crossPath);
 	Road::initRoads(cityMap);
 	Cross::initCrosses(cityMap);
-	Map::initMap(cityMap);
+	Map::initMap(cityMap, Cross::crosses);
 	Car::initCars(carPath, cityMap);	
 	Car::numALL = Car::cars.size();
 	Car::numStop = Car::numALL;//所有未启动的车
