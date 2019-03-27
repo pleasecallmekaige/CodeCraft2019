@@ -120,6 +120,7 @@ void Cross::processEachRoad(Road* proad, Map& cityMap)
         }
         if(car->_to == _id)//到达终点
         {
+            assert(roadvector[car->_atChannel].front() == car);
             car->moveToEnd();
             assert(car->_atChannel < proad->_channel);
             proad->driveOneChannel(roadvector[car->_atChannel]);
@@ -134,6 +135,7 @@ void Cross::processEachRoad(Road* proad, Map& cityMap)
             car->_isEndStatusOnRoad = true;
             car->getAtRoad()->delNumOfWaiteCar();
             assert(car->_atChannel < proad->_channel);
+            assert(roadvector[car->_atChannel].front() == car);
             proad->driveOneChannel(roadvector[car->_atChannel]);
             goto out;
         }

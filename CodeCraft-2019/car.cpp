@@ -67,6 +67,7 @@ void Car::moveToNextRoad(int lane)
     Road* patRoad = _atRoad;
     vector<vector<Car*>>& fromVector = (_curCross==patRoad->_from)?patRoad->carsInRoadToFrom:patRoad->carsInRoadFromTo;
     // vector<vector<Car*>>& toVector = (_curCross==pnextRoad->_from)?pnextRoad->carsInRoadFromTo:pnextRoad->carsInRoadToFrom;
+    assert(fromVector[this->_atChannel].front() == this);
     patRoad->outCarToRoad(this); 
     patRoad->driveOneChannel(fromVector[this->_atChannel]);  
     pnextRoad->addCarToRoad(this, lane);//更新车的所有状态
@@ -108,7 +109,6 @@ int Car::getShortestDistance(Map &cityMap)
     for(size_t i = 0u; i<nextCross.size(); ++i)
     {
         int distance = cityMap.getDistance(nextCross[i], _to) + cityMap.getDistance(_curCross, nextCross[i]); 
-        distance = getScore(distance, _curCross, trueNextRoad[i]);
         if(distance < score && nextCross[i] != _preCross)
         {//出现距离更小的路，且没有掉头返回上一个路口（车辆不允许掉头）
             score = distance;
@@ -271,7 +271,7 @@ void Partition(vector<Car*>& data,int begin,int end)
     int small = l-1;
     while(l<r)
     {
-        if(data[l]->_priority < data[end]->_priority)
+        if(data[l]->_priority+data[l]->_startTime < data[end]->_priority+data[end]->_startTime)
         {
             small++;
             if(small!=l)
@@ -294,7 +294,6 @@ void qiuckSort(vector<Car*>& data,int length)
     Partition(data,0,length-1);
 }
 
-
 /*static function*/
 void Car::initCars(string file, Map &cityMap)
 {
@@ -303,7 +302,7 @@ void Car::initCars(string file, Map &cityMap)
     srand((unsigned)time(0));  
     for (size_t i=0u; i<cars.size(); ++i )
     {
-        cars[i]->_startTime = cars[i]->_startTime + (int)TIME_MAX_VALUE * (i/cars.size()) * rand() / (RAND_MAX + 1);
+        cars[i]->_startTime = cars[i]->_startTime + (int)TIME_MAX_VALUE * ((float)i/cars.size());
     }
 }
 

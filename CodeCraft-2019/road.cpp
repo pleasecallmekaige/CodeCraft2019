@@ -50,6 +50,7 @@ void Road::driveOneChannel(vector<Car *>& oneChannel)
         {
             if(car->_curSpeed > car->_distanceToCross)//能行驶出路口
             {
+                assert(0 == i);
                 assert(car->_isEndStatusOnRoad == false);
                 car->_isEndStatusOnRoad = false;
             }
@@ -72,7 +73,9 @@ void Road::driveOneChannel(vector<Car *>& oneChannel)
             }
             else//前方车辆为终止车辆
             {
+                assert(oneChannel[i-1]->_distanceToCross + 1 <= car->_distanceToCross);
                 car->_distanceToCross = oneChannel[i-1]->_distanceToCross + 1;
+                assert(car->_distanceToCross<_length);
                 assert(car->_isEndStatusOnRoad == false);
                 car->_isEndStatusOnRoad = true;
                 --_numOfWaitCar;
