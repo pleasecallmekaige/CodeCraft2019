@@ -4,6 +4,7 @@
 #include "cross.h"
 #include "road.h"
 #include "car.h"
+#include "param.h"
 
 map<int,Cross *> Cross::crosses;
 
@@ -193,7 +194,7 @@ int8_t Cross::processStartCar(Map &cityMap, Car* car)
     car->_curCross = car->_nextCross;
     car->searchPath(cityMap);//_nextRoad已经更新为要出发的road  _toturn
     /*判断一下当前路段会不会很堵，jams大的话就不出来*/
-    if(car->getNextRoad()->getJams(car->_curCross) > 0.4f)
+    if(car->getNextRoad()->getJams(car->_curCross) > FLOAT_STARTCAR_JAM)
     {
             car->setStatusStop();
             car->_startTime = car->_startTime + 1;

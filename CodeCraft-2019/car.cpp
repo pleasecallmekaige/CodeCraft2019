@@ -1,6 +1,7 @@
 #include "car.h"
 #include "cross.h"
 #include "road.h"
+#include "param.h"
 #include <stdlib.h>
 #include <time.h>
 
@@ -228,7 +229,7 @@ void Car::Scheduler(Map &cityMap)
     for (int i=0; i<Car::numALL; ++i )//把启动车辆加入入口
     {
         Car* p = cars[i];
-        if(turntime >= p->_startTime && p->getStatus() == isStop && Car::numRuning <1500)
+        if(turntime >= p->_startTime && p->getStatus() == isStop && Car::numRuning < INT_LIMIT_NUM_CAR)
         {
             p->setStatusRuning();
             p->setStartTime(turntime);
@@ -293,19 +294,17 @@ void qiuckSort(vector<Car*>& data,int length)
     Partition(data,0,length-1);
 }
 
-#define RANGE 10
-#define MAX 420
 
 /*static function*/
 void Car::initCars(string file, Map &cityMap)
 {
 	readCars(file, cityMap);
-    // qiuckSort(cars, cars.size());
-    // srand((unsigned)time(0));  
-    // for (size_t i=0u; i<cars.size(); ++i )
-    // {
-    //     cars[i]->_startTime = cars[i]->_startTime + (int)MAX * (i/cars.size()) * rand() / (RAND_MAX + 1);
-    // }
+    qiuckSort(cars, cars.size());
+    srand((unsigned)time(0));  
+    for (size_t i=0u; i<cars.size(); ++i )
+    {
+        cars[i]->_startTime = cars[i]->_startTime + (int)TIME_MAX_VALUE * (i/cars.size()) * rand() / (RAND_MAX + 1);
+    }
 }
 
 /*读入car.txt文件 static function*/
