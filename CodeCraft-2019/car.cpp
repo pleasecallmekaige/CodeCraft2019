@@ -202,35 +202,43 @@ int Car::getScore(int distance, int _curCross, int nextRoadId)
     return a;
 }
 
-/*static function*/
-void Car::Scheduler(Map &cityMap)
+void updataMap(Map& cityMap)
 {
-    do
-    {
-        for(size_t i=0u; i<cityMap.road.size(); ++i)//调度路上的车
-        {
-            assert(Road::roads[cityMap.road[i][0]]->_numOfWaitCar >= 0);
-            Road::roads[cityMap.road[i][0]]->driveAllCarJustOnRoadToEndStatus();
-        }
-
-        for (size_t i=0u; i<cityMap.cross.size(); ++i )//调度所有路口，通过路口把路上所有优先级最高的车先调度
-        {
-            Cross::crosses[cityMap.cross[i][0]]->processEachCross(cityMap);              
-        }
-        //cout<<"WaitCar: "<<Car::numWait<<endl;
-    } while (Car::numWait != 0);
-    
     for(size_t i=0u; i<cityMap.road.size(); ++i)//更新路况
     {
         Road::roads[cityMap.road[i][0]]->updateRoadCondition(cityMap);
     }
     cityMap.updateMatrix();
+}
+
+/*static function*/
+void Car::Scheduler(Map &cityMap)
+{
+    for(size_t i=0u; i<cityMap.road.size(); ++i)//调度路上的车
+    {
+        assert(Road::roads[cityMap.road[i][0]]->_numOfWaitCar >= 0);
+        Road::roads[cityMap.road[i][0]]->driveAllCarJustOnRoadToEndStatus();
+    }
+    while (Car::numWait != 0)
+    {
+        for (size_t i=0u; i<cityMap.cross.size(); ++i )//调度所有路口，通过路口把路上所有优先级最高的车先调度
+        {
+            if(i>0 )//保证id升序处理
+                assert(Cross::crosses[cityMap.cross[i][0]]->_id > Cross::crosses[cityMap.cross[i-1][0]]->_id);
+            Cross::crosses[cityMap.cross[i][0]]->processEachCross(cityMap);              
+        }
+        //cout<<"WaitCar: "<<Car::numWait<<endl;
+    }
+    
+    updataMap(cityMap);
 
     /*起步车辆最后加入入口*/
 
     for (int i=0; i<Car::numALL; ++i )//把启动车辆加入入口
     {
         Car* p = cars[i];
+        if(i>0)//保证id升序处理
+            assert(cars[i]->_id>cars[i-1]->_id);
         if(turntime >= p->_startTime && p->getStatus() == isStop && Car::numRuning < INT_LIMIT_NUM_CAR)
         {
             p->setStatusRuning();
@@ -239,11 +247,7 @@ void Car::Scheduler(Map &cityMap)
         }
     }
 
-    for(size_t i=0u; i<cityMap.road.size(); ++i)//更新路况
-    {
-        Road::roads[cityMap.road[i][0]]->updateRoadCondition(cityMap);
-    }
-    cityMap.updateMatrix();
+    updataMap(cityMap);
     /*需要善后处理的
     p->_isEndStatusOnRoad = false;//每次时间片完都把所有的车设为等待；
     每个路口的_processNum要清0
@@ -264,55 +268,55 @@ void Car::Scheduler(Map &cityMap)
     }
 }
 
-void swap(Car*& a, Car*& b)
-{
-    Car* tmp = a;
-    a = b;
-    b = tmp;
-}
-void Partition(vector<Car*>& data,int begin,int end)
-{
-    if(end-begin<=0)
-        return;
-    int l = begin;
-    int r = end;
-    int small = l-1;
-    while(l<r)
-    {
-        if(data[l]->_priority+data[l]->_startTime < data[end]->_priority+data[end]->_startTime)
-        {
-            small++;
-            if(small!=l)
-            {
-              swap(data[small],data[l]);
-            }
-        }
-        l++;
-    }
-    small++;
-    swap(data[small],data[end]);
+// void swap(Car*& a, Car*& b)
+// {
+//     Car* tmp = a;
+//     a = b;
+//     b = tmp;
+// }
+// void Partition(vector<Car*>& data,int begin,int end)
+// {
+//     if(end-begin<=0)
+//         return;
+//     int l = begin;
+//     int r = end;
+//     int small = l-1;
+//     while(l<r)
+//     {
+//         if(data[l]->_priority+data[l]->_startTime < data[end]->_priority+data[end]->_startTime)
+//         {
+//             small++;
+//             if(small!=l)
+//             {
+//               swap(data[small],data[l]);
+//             }
+//         }
+//         l++;
+//     }
+//     small++;
+//     swap(data[small],data[end]);
 
-    Partition(data,begin,small-1);
-    Partition(data,small+1,end);
-}
-void qiuckSort(vector<Car*>& data,int length)
-{
-    if(length<=0)
-        return;
-    Partition(data,0,length-1);
-}
+//     Partition(data,begin,small-1);
+//     Partition(data,small+1,end);
+// }
+// void qiuckSort(vector<Car*>& data,int length)
+// {
+//     if(length<=0)
+//         return;
+//     Partition(data,0,length-1);
+// }
 
 /*static function*/
-void Car::initCars(string file, Map &cityMap)
+void Car::initCars(string file, Map &cityMap)//这里排序可能会造成发车不能按ID升序发车
 {
 	readCars(file, cityMap);
-    qiuckSort(cars, cars.size());
-    srand((unsigned)time(0));  
-    for (size_t i=0u; i<cars.size(); ++i )
-    {
-        cars[i]->_startTime = cars[i]->_startTime + (int)TIME_MAX_VALUE * ((float)i/cars.size());
-    }
 }
+    // qiuckSort(cars, cars.size());
+    // srand((unsigned)time(0));  
+    // for (size_t i=0u; i<cars.size(); ++i )
+    // {
+    //     cars[i]->_startTime = cars[i]->_startTime + (int)TIME_MAX_VALUE * ((float)i/cars.size());
+    // }
 
 /*读入car.txt文件 static function*/
 void Car::readCars(string file, Map &cityMap)

@@ -100,7 +100,7 @@ void Cross::processEachRoad(Road* proad, Map& cityMap)
     vector<vector<Car*>>& roadvector = (_id==proad->_from)?proad->carsInRoadToFrom:proad->carsInRoadFromTo;
     int lane = 0;
     car = proad->getFirstCar(_id);
-    while(1)
+    while(proad->_numOfWaitCar)
     {
         //car = proad->getFirstCar(_id);
         if(car == NULL)return;//这个路没有第一优先级可以出来的车
@@ -172,6 +172,8 @@ void Cross::processEachCross(Map& cityMap)
     }
     for(size_t i = 0u; i<_sortRoad.size();)//路口id升序遍历
     {
+        if(i>0)//保证id升序处理
+            assert(_sortRoad[i]->_id>_sortRoad[i-1]->_id);
         processEachRoad(_sortRoad[i], cityMap);
         cur += _sortRoad[i]->_numOfWaitCar;//记录cross每个road的处于wait的车的和
         ++i;
