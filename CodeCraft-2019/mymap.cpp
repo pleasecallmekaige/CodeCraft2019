@@ -1,11 +1,16 @@
 #include "mymap.h"
 #include "cross.h"
 #include "road.h"
+#include <algorithm>
+
+bool comp(vector<int> i, vector<int> j){return i[0]<j[0];}
 
 Map::Map(string roadfile, string crossfile)
 {
     readroad(roadfile);
     readcross(crossfile);
+    sort(cross.begin(),cross.end(),comp);
+    sort(road.begin(),road.end(),comp);
 }
 
 void Map::readroad(string file)

@@ -2,6 +2,7 @@
 #include "cross.h"
 #include "road.h"
 #include "param.h"
+#include <algorithm>
 #include <stdlib.h>
 #include <time.h>
 
@@ -305,11 +306,12 @@ void Car::Scheduler(Map &cityMap)
 //         return;
 //     Partition(data,0,length-1);
 // }
-
+bool comp(Car* i, Car* j){return i->_id<j->_id;}
 /*static function*/
 void Car::initCars(string file, Map &cityMap)//这里排序可能会造成发车不能按ID升序发车
 {
 	readCars(file, cityMap);
+    sort(cars.begin(),cars.end(),comp);
 }
     // qiuckSort(cars, cars.size());
     // srand((unsigned)time(0));  
