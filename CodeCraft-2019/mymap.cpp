@@ -1,6 +1,7 @@
 #include "mymap.h"
 #include "cross.h"
 #include "road.h"
+#include "param.h"
 #include <algorithm>
 
 bool comp(vector<int> i, vector<int> j){return i[0]<j[0];}
@@ -118,9 +119,9 @@ void Map::updateMatrix()
 void Map::updataOneRoad(Road* proad)
 {
 
-    mymap[Cross::crosses[proad->_from]->_index] [Cross::crosses[proad->_to]->_index] = 2*proad->_carNumFromTo/proad->_channel + proad->_length;
+    mymap[Cross::crosses[proad->_from]->_index] [Cross::crosses[proad->_to]->_index] = MYMAP_EXTEND_COE*proad->_carNumFromTo/proad->_channel + proad->_length;
     if(proad->_isDuplex == 1)
-        mymap[Cross::crosses[proad->_to]->_index] [Cross::crosses[proad->_from]->_index] = 2*proad->_carNumToFrom/proad->_channel + proad->_length;
+        mymap[Cross::crosses[proad->_to]->_index] [Cross::crosses[proad->_from]->_index] = MYMAP_EXTEND_COE*proad->_carNumToFrom/proad->_channel + proad->_length;
 }
 
 /*输入两个路口的id，查询其最短距离*/
