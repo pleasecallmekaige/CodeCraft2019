@@ -79,6 +79,7 @@ public:
     int _priority;
     
     bool _isEndStatusOnRoad;
+    int  _numOfSchedule;
 
     Car(std::vector<int> &res);
 
@@ -102,25 +103,11 @@ public:
         return _status;
     }
 
-    void setStatusRuning()
-    {
-        _status = isRuning;
-        ++numRuning;
-        --numStop;
-    }
-    void setStatusEnd()
-    {
-        _status = isEnd;
-        --numRuning;
-        ++numEnd;
-    }
-    void setStatusStop()//用于车子启动失败
-    {
-        assert(_status == isRuning);
-        _status = isStop;
-        --numRuning;
-        ++numStop;
-    }
+    void setStatusRuning();
+
+    void setStatusEnd();
+
+    void setStatusStop();//用于车子启动失败
 
     void setStartTime(uint32_t turntime)
     {

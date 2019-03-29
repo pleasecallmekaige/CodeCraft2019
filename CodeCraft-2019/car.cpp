@@ -42,10 +42,31 @@ Car::Car(std::vector<int> &res)//res就是car.txt的一行
         _atChannel(0),
         _distanceToCross(0),
         _priority(0),
-        _isEndStatusOnRoad(true)
+        _isEndStatusOnRoad(true),
+        _numOfSchedule(0)
     {     
     }
 
+void Car::setStatusRuning()
+{
+    _status = isRuning;
+    ++numRuning;
+    --numStop;
+}
+void Car::setStatusEnd()
+{
+    _status = isEnd;
+    --numRuning;
+    ++numEnd;
+    _numOfSchedule = turntime - _planeTime;
+}
+void Car::setStatusStop()//用于车子启动失败
+{
+    assert(_status == isRuning);
+    _status = isStop;
+    --numRuning;
+    ++numStop;
+}
 
 TURN Car::whereToTurn(Road* atRoad, Road* nextRoad, vector<int>& nextRoadvector)
 {
@@ -240,15 +261,20 @@ void Car::Scheduler(Map &cityMap)
         Car* p = cars[i];
         if(i>0)//保证id升序处理
             assert(cars[i]->_id>cars[i-1]->_id);
-        if(turntime >= p->_startTime && p->getStatus() == isStop && Car::numRuning < INT_LIMIT_NUM_CAR)
+        if(turntime >= p->_planeTime && p->getStatus() == isStop && Car::numRuning < INT_LIMIT_NUM_CAR)
         {
             p->setStatusRuning();
-            p->setStartTime(turntime);
-            Cross::crosses[p->_from]->processStartCar(cityMap, p);
+            //p->setStartTime(turntime);
+            if(Cross::crosses[p->_from]->processStartCar(cityMap, p)==1)
+            {
+                p->setStartTime(turntime);
+                // p->getAtRoad()->updateRoadCondition(cityMap);
+            }
         }
     }
 
     updataMap(cityMap);
+    // cityMap.updateMatrix();
     /*需要善后处理的
     p->_isEndStatusOnRoad = false;//每次时间片完都把所有的车设为等待；
     每个路口的_processNum要清0

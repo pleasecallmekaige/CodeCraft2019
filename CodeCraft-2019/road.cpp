@@ -59,6 +59,7 @@ void Road::driveOneChannel(vector<Car *>& oneChannel)
             {
                 car->_distanceToCross -= car->_curSpeed;
                 assert(car->_distanceToCross>=0);
+                assert(i==0 || car->_distanceToCross > oneChannel[i-1]->_distanceToCross);
                 assert(car->_isEndStatusOnRoad == false);
                 car->_isEndStatusOnRoad = true;
                 --_numOfWaitCar;
@@ -74,7 +75,7 @@ void Road::driveOneChannel(vector<Car *>& oneChannel)
             }
             else//前方车辆为终止车辆
             {
-                assert(oneChannel[i-1]->_distanceToCross + 1 <= car->_distanceToCross);
+                assert(oneChannel[i-1]->_distanceToCross >= car->_distanceToCross - car->_curSpeed);
                 car->_distanceToCross = oneChannel[i-1]->_distanceToCross + 1;
                 assert(car->_distanceToCross<_length);
                 assert(car->_isEndStatusOnRoad == false);
@@ -162,9 +163,8 @@ void Road::addCarToRoad(Car* car, int lane) {
     }
     else
     {
-        return;
+        assert(0);
     }
-
     if(car->_curCross==_from)
         ++_carNumFromTo;
     else

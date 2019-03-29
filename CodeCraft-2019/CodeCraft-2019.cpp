@@ -56,6 +56,13 @@ int main(int argc, char *argv[])
 		++turntime;
 		//mySDL::display();//可视化
 	}while(Car::numRuning != 0 || Car::numStop !=0);
+	uint64_t num=0;
+    for (int i=0; i<Car::numALL; ++i )
+    {
+		Car* p = Car::cars[i];
+		num+=p->_numOfSchedule;
+	}
+	cout<<"allcarsturntime: "<<num<<endl;
 
 	writeAnswer(answerPath, Car::cars);	
 	return 0;
