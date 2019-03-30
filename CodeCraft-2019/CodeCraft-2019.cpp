@@ -51,18 +51,19 @@ int main(int argc, char *argv[])
 		/*路口处理车辆*/
 		/*路口的车辆出来到路上*/
 		/*启动车辆加到路口*/
-		cout<<"turntime:"<<turntime<<"  "<<"numRuning:"<<Car::numRuning
-		<<"  "<<"numStop:"<<Car::numStop<<"  "<<"numEnd:"<<Car::numEnd<<endl;
+		// cout<<"turntime:"<<turntime<<"  "<<"numRuning:"<<Car::numRuning
+		// <<"  "<<"numStop:"<<Car::numStop<<"  "<<"numEnd:"<<Car::numEnd<<endl;
 		++turntime;
 		//mySDL::display();//可视化
 	}while(Car::numRuning != 0 || Car::numStop !=0);
+	//cout<<"turntime:"<<(turntime-1)<<endl;
 	uint64_t num=0;
     for (int i=0; i<Car::numALL; ++i )
     {
 		Car* p = Car::cars[i];
 		num+=p->_numOfSchedule;
 	}
-	cout<<"allcarsturntime: "<<num<<endl;
+	//cout<<"allcarsturntime: "<<num<<endl;
 
 	writeAnswer(answerPath, Car::cars);	
 	return 0;
