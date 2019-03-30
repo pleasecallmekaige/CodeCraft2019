@@ -43,7 +43,9 @@ void mycomp(vector<Road*>& eachRoad)
 Cross::Cross(vector<int>& oneCross, map<int, Road *>& roads, int index)
    :_id(oneCross[0]),
     _index(index),
-    _processNum(0)
+    _processNum(0),
+    _tmpjams(0),
+    _jams(0)
 {
     _Road[0] = NULL;
     _Road[1] = NULL;
@@ -129,6 +131,8 @@ void Cross::processEachRoad(Road* proad, Map& cityMap)
         lane = car->getNextRoad()->canAddToButton(car);
         if(-3 == lane || -2 == lane)
         {
+            if(-3 == lane)
+                ++_tmpjams;
             car->_distanceToCross = 0;
             assert(car->_isEndStatusOnRoad == false);
             car->_isEndStatusOnRoad = true;
@@ -187,6 +191,7 @@ void Cross::processEachCross(Map& cityMap)
             }
         }
     }
+    _jams = _tmpjams;
     ++_processNum;//每完成一次路口处理加一
 }
 

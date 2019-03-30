@@ -30,6 +30,10 @@ public:
 
     Road* _Road[4];
 
+    int _tmpjams;
+
+    int _jams;
+
     /*升序遍历的road*/
     vector<Road*> _sortRoad;
     /*路口处理池*/

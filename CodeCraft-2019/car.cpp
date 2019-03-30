@@ -291,7 +291,9 @@ void Car::Scheduler(Map &cityMap)
     }
     for (size_t i=0u; i<cityMap.cross.size(); ++i )
     {
-        Cross::crosses[cityMap.cross[i][0]]->_processNum = 0;
+        Cross * c = Cross::crosses[cityMap.cross[i][0]];
+        c->_processNum = 0;
+        c->_tmpjams = 0;
     }
 }
 
