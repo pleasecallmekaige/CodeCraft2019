@@ -1,6 +1,7 @@
 #include "mymap.h"
 #include "cross.h"
 #include "road.h"
+#include "car.h"
 #include "param.h"
 #include <algorithm>
 
@@ -116,12 +117,44 @@ void Map::updateMatrix()
                     mymap[i][j]=mymap[i][k]+mymap[k][j]; 
 }
 
+bool isCrowd(Road* proad, vector<vector<Car*>>& v)
+{
+    for(size_t i=0u; i<v.size(); ++i)
+    {
+        if(!v[i].empty() && v[i].back()->_distanceToCross == proad->_length - 1)
+            continue;
+        else
+            return false;
+    }
+    return true;
+}
+
 void Map::updataOneRoad(Road* proad)
 {
+    int jams = Cross::crosses[proad->_from]->_jams;
+    vector<vector<Car*>> v = proad->carsInRoadFromTo;
 
-    mymap[Cross::crosses[proad->_from]->_index] [Cross::crosses[proad->_to]->_index] = MYMAP_EXTEND_COE*proad->_carNumFromTo/proad->_channel + proad->_length;
-    if(proad->_isDuplex == 1)
-        mymap[Cross::crosses[proad->_to]->_index] [Cross::crosses[proad->_from]->_index] = MYMAP_EXTEND_COE*proad->_carNumToFrom/proad->_channel + proad->_length;
+    if( jams >= 2 && isCrowd(proad,v))
+    {
+        mymap[Cross::crosses[proad->_from]->_index] [Cross::crosses[proad->_to]->_index] = jams*100 + proad->_length;
+    }
+    else
+    {
+        mymap[Cross::crosses[proad->_from]->_index] [Cross::crosses[proad->_to]->_index] = proad->_length;
+    }
+    
+    if(proad->_isDuplex == 0)
+        return;
+    jams = Cross::crosses[proad->_to]->_jams;
+    v = proad->carsInRoadToFrom;  
+    if( jams >= 2 && isCrowd(proad,v))
+    {
+        mymap[Cross::crosses[proad->_to]->_index] [Cross::crosses[proad->_from]->_index] = jams*100 + proad->_length;
+    }
+    else
+    {
+        mymap[Cross::crosses[proad->_to]->_index] [Cross::crosses[proad->_from]->_index] = proad->_length;
+    }
 }
 
 /*输入两个路口的id，查询其最短距离*/

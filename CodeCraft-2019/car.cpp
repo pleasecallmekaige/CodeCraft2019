@@ -187,7 +187,7 @@ void Car::searchPath(Map &cityMap)
     assert(resCross != -1);//没有找到下个路口
     if(_curCross == _to)//特殊处理一下到达终点的车辆的搜索 判定为直行，
     {
-        int f;
+        int f = 0;
         for(int i = 1; i<=4; ++i)//第0个是crossid，从第一个开始
         {
             if(_atRoad->_id == nextRoad[i])
