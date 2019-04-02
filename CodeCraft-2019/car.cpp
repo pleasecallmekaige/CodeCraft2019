@@ -219,8 +219,8 @@ int Car::getScore(int distance, int _curCross, int nextRoadId)
     float jams = proad->getJams(_curCross);
     assert(jams<1);
     //if(jams<0.2)jams=0;
-    if(jams>=0.8)jams=0.79999;
-    int a = distance/(1.2-jams);
+    if(jams>=0.9)jams=0.9;
+    int a = distance/(1.0-jams);
     return a;
 }
 
