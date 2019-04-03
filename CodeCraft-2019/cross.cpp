@@ -110,11 +110,23 @@ void Cross::processEachRoad(Road* proad, Map& cityMap)
         for(size_t i=0u; i<_carPool.size(); ++i)
         {
             if(_carPool[i]->_id == car->_id)continue;
-            if(car->_turnto == isForward || car->_to == _id)break;
-            if(car->_nextRoad == _carPool[i]->_nextRoad && car->_turnto < _carPool[i]->_turnto)
-            {//有别的车也去这个车的目标road且优先级比自己高（有冲突）
-                assert(_carPool[i]->_nextRoad!=NULL);
-                return;
+            if(car->_priority == 1)
+            {
+                if(car->_turnto == isForward || car->_to == _id)break;
+                if(car->_nextRoad == _carPool[i]->_nextRoad && _carPool[i]->_priority == 1 && car->_turnto < _carPool[i]->_turnto)
+                {//有别的车也去这个车的目标road且优先级比自己高（有冲突）
+                    assert(_carPool[i]->_nextRoad!=NULL);
+                    return;
+                }
+            }
+            else
+            {
+                if(_carPool[i]->_nextRoad==NULL && car->_nextRoad == NULL)break;
+                if(car->_nextRoad == _carPool[i]->_nextRoad && (_carPool[i]->_priority == 1 || car->_turnto < _carPool[i]->_turnto))
+                {//有别的车也去这个车的目标road且优先级比自己高（有冲突）
+                    assert(_carPool[i]->_nextRoad!=NULL);
+                    return;
+                }
             }
         }
         if(car->_to == _id)//到达终点

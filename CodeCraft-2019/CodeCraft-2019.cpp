@@ -21,7 +21,7 @@ int main(int argc, char *argv[])
 {
     std::cout << "Begin" << std::endl;
 	
-	if(argc < 5){
+	if(argc < 6){
 		std::cout << "please input args: carPath, roadPath, crossPath, answerPath" << std::endl;
 		exit(1);
 	}
@@ -30,10 +30,11 @@ int main(int argc, char *argv[])
 	std::string carPath(argv[1]);
 	std::string roadPath(argv[2]);
 	std::string crossPath(argv[3]);
-	std::string answerPath(argv[4]);
+	std::string presetAnswerPath(argv[4]);
+	std::string answerPath(argv[5]);
 
 
-	Map cityMap(roadPath,crossPath);
+	Map cityMap(roadPath,crossPath,presetAnswerPath);
 	Road::initRoads(cityMap);
 	Cross::initCrosses(cityMap);
 	Map::initMap(cityMap, Cross::crosses);
@@ -79,6 +80,7 @@ void writeAnswer(string file, vector<Car *>& cars)
     for (int i=0; i<Car::numALL; ++i )
     {
         Car* p = cars[i];
+		if(p->_preset == 1)continue;
 		outfile << "("<<p->_id<< ", " <<p->_startTime;
 		int n = p->_answerPath.size();
 		for(int i=0; i<n; ++i)

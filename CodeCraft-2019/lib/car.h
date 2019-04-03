@@ -2,6 +2,7 @@
 #define _CAR_H_
 #include<iostream>
 #include <vector>
+#include <map>
 
 #include "mymap.h"
 #include "road.h"
@@ -27,6 +28,8 @@ public:
 /*初始化后所有车的指针数组，
     Car::cars[i]就是第i辆车的指针*/
     static vector<Car *> cars;
+
+    static map<int, vector<int>> presetCars;
 
     /*还未启动的车数量，当*/
     static int numStop;
@@ -75,8 +78,10 @@ public:
     int8_t _atChannel;
     /*当前距离Cross的长度*/
     int16_t _distanceToCross;
-    /*最短路径/速度*/
-    int _priority;
+    /*是否优先*/
+    int8_t _priority;
+    /*是否预置*/
+    int8_t _preset;
     
     bool _isEndStatusOnRoad;
     int  _numOfSchedule;
@@ -137,7 +142,6 @@ public:
 
     int getScore(int distance, int _curCross, int nextRoadId);
 
-    int getShortestDistance(Map &cityMap);
 
 };
 

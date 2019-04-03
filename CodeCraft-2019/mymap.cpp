@@ -1,15 +1,17 @@
 #include "mymap.h"
 #include "cross.h"
 #include "road.h"
+#include "car.h"
 #include "param.h"
 #include <algorithm>
 
 bool comp(vector<int> i, vector<int> j){return i[0]<j[0];}
 
-Map::Map(string roadfile, string crossfile)
+Map::Map(string roadfile, string crossfile, string presetAnswerPath)
 {
     readroad(roadfile);
     readcross(crossfile);
+    readPresetAnswer(presetAnswerPath);
     sort(cross.begin(),cross.end(),comp);
     sort(road.begin(),road.end(),comp);
 }
@@ -58,6 +60,29 @@ void Map::readcross(string file)
 		cross.push_back(res);
     }
     infile.close();             //关闭文件输入流
+}
+
+void Map::readPresetAnswer(string file)
+{
+    ifstream infile; 
+    infile.open(file.data());   //将文件流对象与文件连接起来 
+    assert(infile.is_open());   //若失败,则输出错误消息,并终止程序运行 
+	int result;
+    string s;
+	char t;
+	getline(infile,s);  //#
+    while(getline(infile,s))
+    {
+		stringstream input(s.substr(1,s.length()-2));
+		vector<int> res;
+		while(input>>result){
+			input>>t;
+			res.push_back(result);
+		}
+		presetcar.push_back(res);
+        Car::presetCars.insert(map<int, vector<int>>::value_type(res[0], presetcar.back()));
+    }
+    infile.close();             //关闭文件输入流 
 }
 
 void Map::initMap(Map & cityMap, map<int, Cross*>& crosses)

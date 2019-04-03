@@ -17,6 +17,7 @@ const TURN TURNTABLE[4][4]  =   {{ none,     isRight,  isForward,isLeft    },
                                   };
 
 vector<Car *> Car::cars;
+map<int, vector<int>> Car::presetCars;
 
 int Car::numStop = 0;
 int Car::numRuning = 0;
@@ -41,7 +42,8 @@ Car::Car(std::vector<int> &res)//res就是car.txt的一行
         _nextRoad(NULL),
         _atChannel(0),
         _distanceToCross(0),
-        _priority(0),
+        _priority(res[5]),
+        _preset(res[6]),
         _isEndStatusOnRoad(true),
         _numOfSchedule(0)
     {     
@@ -102,48 +104,6 @@ void Car::moveToEnd()
     this->setStatusEnd();
 }
 
-int Car::getShortestDistance(Map &cityMap)
-{
-    vector<int> nextRoad;
-    vector<int> trueNextRoad;
-    vector<int> nextCross;
-    int resCross = -1;
-    int resRoad = -1;
-    nextRoad = cityMap.cross[Cross::crosses[_curCross]->_index];
-    for(int i = 1; i<=4; ++i)//第0个是crossid，从第一个开始
-    {
-        if(nextRoad[i] != -1)
-        {
-            /*处理单向通行的road*/
-            if(cityMap.road[Road::roads[nextRoad[i]]->_index][6] == 1)
-            {//查找下一个相邻的路口
-                nextCross.push_back((cityMap.road[Road::roads[nextRoad[i]]->_index][4] == _curCross)? cityMap.road[Road::roads[nextRoad[i]]->_index][5]:cityMap.road[Road::roads[nextRoad[i]]->_index][4]);
-                trueNextRoad.push_back(nextRoad[i]);
-            }
-            else if(cityMap.road[Road::roads[nextRoad[i]]->_index][6] == 0 && _curCross == cityMap.road[Road::roads[nextRoad[i]]->_index][4])
-            {
-                nextCross.push_back(cityMap.road[Road::roads[nextRoad[i]]->_index][5]);
-                trueNextRoad.push_back(nextRoad[i]);
-            }
-        }
-    }
-    int score = INT32_MAX;
-    for(size_t i = 0u; i<nextCross.size(); ++i)
-    {
-        int distance = cityMap.getDistance(nextCross[i], _to) + cityMap.getDistance(_curCross, nextCross[i]); 
-        if(distance < score && nextCross[i] != _preCross)
-        {//出现距离更小的路，且没有掉头返回上一个路口（车辆不允许掉头）
-            score = distance;
-            resCross = nextCross[i];
-            resRoad = trueNextRoad[i];
-        }
-    }
-    assert(resRoad != -1);//没有找到下个路
-    assert(resCross != -1);//没有找到下个路口
-
-    return score;
-}
-
 void Car::searchPath(Map &cityMap)
 {
     vector<int> nextRoad;
@@ -153,6 +113,21 @@ void Car::searchPath(Map &cityMap)
     int resRoad = -1;
     if(_nextRoad != _atRoad)return;//每个路口第一次寻路的时候_nextRoad == _atRoad的，这里是保证每个路口不寻路两次
     nextRoad = cityMap.cross[Cross::crosses[_curCross]->_index];
+    if(_preset == 1)//处理预置车辆的寻路
+    {
+        if(_atRoad == NULL)
+            _nextRoad = Road::roads[_answerPath[0]];
+        else
+        {
+            auto it = find(_answerPath.begin(),_answerPath.end(),_atRoad->_id);
+            _nextRoad = Road::roads[*(++it)];
+        }
+        
+        /*更新turnto*/
+        _turnto = whereToTurn(_atRoad, _nextRoad, nextRoad);
+        _nextCross = (_curCross == _nextRoad->_from)?_nextRoad->_to:_nextRoad->_from;
+        return;
+    }
     for(int i = 1; i<=4; ++i)//第0个是crossid，从第一个开始
     {
         if(nextRoad[i] != -1)
@@ -187,7 +162,7 @@ void Car::searchPath(Map &cityMap)
     assert(resCross != -1);//没有找到下个路口
     if(_curCross == _to)//特殊处理一下到达终点的车辆的搜索 判定为直行，
     {
-        int f;
+        int f = 0;
         for(int i = 1; i<=4; ++i)//第0个是crossid，从第一个开始
         {
             if(_atRoad->_id == nextRoad[i])
@@ -259,8 +234,8 @@ void Car::Scheduler(Map &cityMap)
     for (int i=0; i<Car::numALL; ++i )//把启动车辆加入入口
     {
         Car* p = cars[i];
-        if(i>0)//保证id升序处理
-            assert(cars[i]->_id>cars[i-1]->_id);
+        // if(i>0)//保证id升序处理
+        //     assert(cars[i]->_id>cars[i-1]->_id);
         if(turntime >= p->_planeTime && p->getStatus() == isStop && Car::numRuning < INT_LIMIT_NUM_CAR)
         {
             p->setStatusRuning();
@@ -295,49 +270,14 @@ void Car::Scheduler(Map &cityMap)
     }
 }
 
-// void swap(Car*& a, Car*& b)
-// {
-//     Car* tmp = a;
-//     a = b;
-//     b = tmp;
-// }
-// void Partition(vector<Car*>& data,int begin,int end)
-// {
-//     if(end-begin<=0)
-//         return;
-//     int l = begin;
-//     int r = end;
-//     int small = l-1;
-//     while(l<r)
-//     {
-//         if(data[l]->_priority+data[l]->_startTime < data[end]->_priority+data[end]->_startTime)
-//         {
-//             small++;
-//             if(small!=l)
-//             {
-//               swap(data[small],data[l]);
-//             }
-//         }
-//         l++;
-//     }
-//     small++;
-//     swap(data[small],data[end]);
-
-//     Partition(data,begin,small-1);
-//     Partition(data,small+1,end);
-// }
-// void qiuckSort(vector<Car*>& data,int length)
-// {
-//     if(length<=0)
-//         return;
-//     Partition(data,0,length-1);
-// }
-bool comp(Car* i, Car* j){return i->_id<j->_id;}
+bool comp1(Car* i, Car* j){return i->_id<j->_id;}
+bool comp2(Car* i, Car* j){return i->_preset>j->_preset;}
 /*static function*/
 void Car::initCars(string file, Map &cityMap)//这里排序可能会造成发车不能按ID升序发车
 {
 	readCars(file, cityMap);
-    sort(cars.begin(),cars.end(),comp);
+    sort(cars.begin(),cars.end(),comp1);
+    stable_sort(cars.begin(),cars.end(),comp2);
 }
     // qiuckSort(cars, cars.size());
     // srand((unsigned)time(0));  
@@ -355,6 +295,7 @@ void Car::readCars(string file, Map &cityMap)
 	int result;
     string s;
 	string t;
+    Car * car;
 	getline(infile,s);  //#
     while(getline(infile,s))
     {
@@ -364,8 +305,16 @@ void Car::readCars(string file, Map &cityMap)
 			input>>t;
 			res.push_back(result);
 		}
-		cars.push_back(new Car(res));
-        cars.back()->_priority = cars.back()->getShortestDistance(cityMap)/cars.back()->_maxSpeed;
+        car = new Car(res);
+		cars.push_back(car);
+        if(car->_preset == 1)
+        {
+            car->_planeTime = presetCars[car->_id][1];//预置车的出发时间
+            for(size_t i=2u; i<presetCars[car->_id].size(); ++i)
+            {
+                car->_answerPath.push_back(presetCars[car->_id][i]);
+            }
+        }
     }
-    infile.close();             //关闭文件输入流 
+    infile.close();            //关闭文件输入流 
 }

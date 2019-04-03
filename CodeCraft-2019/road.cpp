@@ -3,6 +3,7 @@
 #include "car.h"
 #include "param.h"
 #include "mymap.h"
+#include <algorithm>
 
 /*
 (道路id，道路长度，最高限速，车道数目，起始点id，终点id，是否双向)
@@ -103,6 +104,20 @@ void Road::driveAllCarJustOnRoadToEndStatus()
     }/*反向处理完*/
 }
 
+bool isPriority(Car* a){return a->_priority == 1;}
+bool isLessDistance(Car* a, Car* b)
+{
+    if(b->_isEndStatusOnRoad == true)
+        return true;
+    if(a->_isEndStatusOnRoad == true)
+        return false;
+    else if(a->_priority > b->_priority)
+        return true;
+    else if(a->_priority == b->_priority)
+        return a->_distanceToCross < b->_distanceToCross;
+    else
+        return false;
+}
 
 /*获取每个road的优先级第一的车，没有可出来的车就返回NULL*/
 Car* Road::getFirstCar(int16_t curCross)
@@ -110,20 +125,19 @@ Car* Road::getFirstCar(int16_t curCross)
     /*选择方向*/
     assert(curCross == _from || curCross == _to);
     vector<vector<Car*>>& roadvector = (curCross==_from)?carsInRoadToFrom:carsInRoadFromTo;
-    for (int row = 0; row < _length; ++row)
-    {//从第一列开始处理
-        for (int lane = 0; lane < _channel; ++lane)
-        {
-            if(roadvector[lane].empty())continue;
-            Car* car = roadvector[lane][0];
-            if(car->_distanceToCross == row && car->_isEndStatusOnRoad == false)
-            {//按照列优先取到第一辆为wait的车
-                    assert(car->_atChannel == lane);
-                    return car;
-            }
-        }
+    vector<Car *> v;
+    vector<Car *>::iterator it;
+    for (int lane = 0; lane < _channel; ++lane)
+    {
+        if(roadvector[lane].empty())continue;
+        v.push_back(roadvector[lane][0]);
     }
-    return NULL;
+    if(v.empty())return NULL;
+    it = min_element(v.begin(),v.end(),isLessDistance);
+    if((*it)->_isEndStatusOnRoad == false)
+        return *it;
+    else
+        return NULL;
 }
 
 void Road::addNumOfWaiteCar()

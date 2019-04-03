@@ -23,7 +23,7 @@ class Map
 {
 public:
     /*Map的构造函数*/
-    Map(string roadfile, string crossfile);
+    Map(string roadfile, string crossfile, string presetAnswerPath);
 
     /*读入road.txt*/
     void readroad(string file);
@@ -40,8 +40,11 @@ public:
 
     int getDistance(int cross1_id, int cross2_id);
 
+    void readPresetAnswer(string file);
+
     vector<vector<int>> road;
     vector<vector<int>> cross;
+    vector<vector<int>> presetcar;
     vector<vector<MAP_INT>> mymap;
 };
 
