@@ -135,6 +135,7 @@ void Cross::processEachRoad(Road* proad, Map& cityMap)
             car->moveToEnd();
             assert(car->_atChannel < proad->_channel);
             proad->driveOneChannel(roadvector[car->_atChannel]);
+            Road::runAllCarInInitList(cityMap);
             goto out;
         }
         /*下一条路能不能进，有wait状态的车辆挡着，或者三条路都堵死了*/
@@ -148,6 +149,7 @@ void Cross::processEachRoad(Road* proad, Map& cityMap)
             assert(car->_atChannel < proad->_channel);
             assert(roadvector[car->_atChannel].front() == car);
             proad->driveOneChannel(roadvector[car->_atChannel]);
+            Road::runAllCarInInitList(cityMap);
             goto out;
         }
         else if(-1 == lane)
@@ -159,6 +161,7 @@ void Cross::processEachRoad(Road* proad, Map& cityMap)
         /*这一辆车调度没有冲突*/
         assert(car->_isEndStatusOnRoad != true);
         car->moveToNextRoad(lane);//里面会更新当前车道
+        Road::runAllCarInInitList(cityMap);
         out:
         /*处理池的更新*/
         delCarFromPool(car);//car已经从road里面删掉了但还要从处理池里面删掉
@@ -203,13 +206,13 @@ void Cross::processEachCross(Map& cityMap)
 }
 
 
-int8_t Cross::processStartCar(Map &cityMap, Car* car)
+int8_t Cross::processStartCar(Map &cityMap, Car* car, bool isPreset)
 {
     car->_preCross = car->_curCross;
     car->_curCross = car->_nextCross;
     car->searchPath(cityMap);//_nextRoad已经更新为要出发的road  _toturn
     /*判断一下当前路段会不会很堵，jams大的话就不出来*/
-    if(car->getNextRoad()->getJams(car->_curCross) > FLOAT_STARTCAR_JAM)
+    if(isPreset == false && car->getNextRoad()->getJams(car->_curCross) > FLOAT_STARTCAR_JAM)
     {
             car->setStatusStop();
             car->_startTime = car->_startTime + 1;
@@ -222,7 +225,19 @@ int8_t Cross::processStartCar(Map &cityMap, Car* car)
             return 0;
     }
     int lane = car->getNextRoad()->canAddToButton(car);
-    assert(lane != -1);
+    if(lane == -1)
+    {
+        assert(car->_priority == 1);
+        car->setStatusStop();
+        car->_startTime = car->_startTime + 1;
+        car->_preCross = car->_from;
+        car->_curCross = car->_from;
+        car->_nextCross = car->_from;
+        car->_atRoad = NULL;
+        car->_nextRoad = NULL;
+        car->_turnto = isForward;
+        return -1;
+    }
     assert(lane != -2);
     if (lane == -3)//说明所有的车道都已放满
     {

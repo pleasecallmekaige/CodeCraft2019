@@ -17,6 +17,7 @@ const TURN TURNTABLE[4][4]  =   {{ none,     isRight,  isForward,isLeft    },
                                   };
 
 vector<Car *> Car::cars;
+vector<Car *> Car::pricars;
 map<int, vector<int>> Car::presetCars;
 
 int Car::numStop = 0;
@@ -208,6 +209,42 @@ void updataMap(Map& cityMap)
     cityMap.updateMatrix();
 }
 
+void Car::driveCarInitList(bool flag, Map& cityMap)
+{
+    if(flag == true)
+    {
+        Road::runAllCarInInitList(cityMap);
+    }
+    else
+    {
+        /*起步车辆最后加入入口*/
+        for (size_t i=0u; i<cars.size(); ++i )//把启动车辆加入入口
+        {
+            Car* p = cars[i];
+            // if(i>0)//保证id升序处理
+            //     assert(cars[i]->_id>cars[i-1]->_id);
+            if(turntime >= p->_planeTime && p->getStatus() == isStop && (Car::numRuning < INT_LIMIT_NUM_CAR || p->_preset == 1))
+            {
+                p->setStatusRuning();
+                if(p->_preset == 0)
+                {
+                    if(Cross::crosses[p->_from]->processStartCar(cityMap, p, false)==1)
+                    {
+                        p->setStartTime(turntime);
+                    }
+                }
+                else
+                {
+                    if(Cross::crosses[p->_from]->processStartCar(cityMap, p, true)==1)
+                    {
+                        p->setStartTime(turntime);
+                    }
+                }
+            }
+        }
+    }
+}
+
 /*static function*/
 void Car::Scheduler(Map &cityMap)
 {
@@ -216,6 +253,7 @@ void Car::Scheduler(Map &cityMap)
         assert(Road::roads[cityMap.road[i][0]]->_numOfWaitCar >= 0);
         Road::roads[cityMap.road[i][0]]->driveAllCarJustOnRoadToEndStatus();
     }
+    Car::driveCarInitList(true, cityMap);
     while (Car::numWait != 0)
     {
         for (size_t i=0u; i<cityMap.cross.size(); ++i )//调度所有路口，通过路口把路上所有优先级最高的车先调度
@@ -228,25 +266,8 @@ void Car::Scheduler(Map &cityMap)
     }
     
     updataMap(cityMap);
-
-    /*起步车辆最后加入入口*/
-
-    for (int i=0; i<Car::numALL; ++i )//把启动车辆加入入口
-    {
-        Car* p = cars[i];
-        // if(i>0)//保证id升序处理
-        //     assert(cars[i]->_id>cars[i-1]->_id);
-        if(turntime >= p->_planeTime && p->getStatus() == isStop && Car::numRuning < INT_LIMIT_NUM_CAR)
-        {
-            p->setStatusRuning();
-            //p->setStartTime(turntime);
-            if(Cross::crosses[p->_from]->processStartCar(cityMap, p)==1)
-            {
-                p->setStartTime(turntime);
-                // p->getAtRoad()->updateRoadCondition(cityMap);
-            }
-        }
-    }
+    driveCarInitList(true, cityMap);
+    driveCarInitList(false, cityMap);
 
     updataMap(cityMap);
     // cityMap.updateMatrix();
@@ -254,9 +275,19 @@ void Car::Scheduler(Map &cityMap)
     p->_isEndStatusOnRoad = false;//每次时间片完都把所有的车设为等待；
     每个路口的_processNum要清0
     */
-    for (int i=0; i<Car::numALL; ++i )
+    for (size_t i=0u; i<cars.size(); ++i )
     {
         Car* p = cars[i];
+        if(p->getStatus() == isRuning) 
+        {
+            assert(p->_atRoad != NULL);
+            p->_isEndStatusOnRoad = false;//每次时间片完都把所有的车设为等待；
+            p->getAtRoad()->addNumOfWaiteCar();//每次处理完都把车的状态设为等待
+        }
+    }
+    for (size_t i=0u; i<pricars.size(); ++i )
+    {
+        Car* p = pricars[i];
         if(p->getStatus() == isRuning) 
         {
             assert(p->_atRoad != NULL);
@@ -270,14 +301,16 @@ void Car::Scheduler(Map &cityMap)
     }
 }
 
-bool comp1(Car* i, Car* j){return i->_id<j->_id;}
-bool comp2(Car* i, Car* j){return i->_preset>j->_preset;}
+bool comp1(Car* i, Car* j){return i->_id < j->_id;}
+bool comp2(Car* i, Car* j){return i->_planeTime < j->_planeTime;}
 /*static function*/
 void Car::initCars(string file, Map &cityMap)//这里排序可能会造成发车不能按ID升序发车
 {
 	readCars(file, cityMap);
     sort(cars.begin(),cars.end(),comp1);
-    stable_sort(cars.begin(),cars.end(),comp2);
+    sort(cars.begin(),cars.end(),comp2);
+    sort(pricars.begin(),pricars.end(),comp1);
+    sort(pricars.begin(),pricars.end(),comp2);
 }
     // qiuckSort(cars, cars.size());
     // srand((unsigned)time(0));  
@@ -306,7 +339,10 @@ void Car::readCars(string file, Map &cityMap)
 			res.push_back(result);
 		}
         car = new Car(res);
-		cars.push_back(car);
+        if(car->_priority == 1)
+            pricars.push_back(car);
+        else
+		    cars.push_back(car);
         if(car->_preset == 1)
         {
             car->_planeTime = presetCars[car->_id][1];//预置车的出发时间

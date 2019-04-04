@@ -71,6 +71,8 @@ public:
     /*static function*/
     static void initRoads(Map &cityMap);
 
+    static void runAllCarInInitList(Map& cityMap);
+
     void driveOneChannel(vector<Car *>& oneChannel);
 
     void driveAllCarJustOnRoadToEndStatus();//处理在道路上的车

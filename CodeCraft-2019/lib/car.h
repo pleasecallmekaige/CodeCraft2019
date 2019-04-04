@@ -29,6 +29,8 @@ public:
     Car::cars[i]就是第i辆车的指针*/
     static vector<Car *> cars;
 
+    static vector<Car *> pricars;
+
     static map<int, vector<int>> presetCars;
 
     /*还未启动的车数量，当*/
@@ -139,6 +141,8 @@ public:
 
     /*车辆调度函数,控制车辆的启动*/
     static void Scheduler(Map &cityMap);
+
+    static void driveCarInitList(bool flag, Map& cityMap);
 
     int getScore(int distance, int _curCross, int nextRoadId);
 

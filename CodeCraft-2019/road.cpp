@@ -8,7 +8,7 @@
 /*
 (道路id，道路长度，最高限速，车道数目，起始点id，终点id，是否双向)
  */
-
+extern uint32_t turntime;
 map<int, Road*>  Road::roads;
 int Road::numOfCarInRoads = 0;
 
@@ -257,7 +257,20 @@ float Road::getJams(int _curCross)
     return jams;
 }
 
-
-
-
+/*static function*/
+void Road::runAllCarInInitList(Map& cityMap)
+{
+    for (size_t i=0u; i<Car::pricars.size(); ++i )//把启动车辆加入入口
+    {
+        Car* p = Car::pricars[i];
+        if(turntime >= p->_planeTime && p->getStatus() == isStop && (Car::numRuning < INT_LIMIT_NUM_CAR || p->_preset == 1))
+        {
+            p->setStatusRuning();
+            if(Cross::crosses[p->_from]->processStartCar(cityMap, p, p->_preset == 1)==1)
+            {
+                p->setStartTime(turntime);
+            }
+        }
+    }
+}
 

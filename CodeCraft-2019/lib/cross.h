@@ -42,7 +42,7 @@ public:
 
     void processEachCross(Map& cityMap);
 
-    int8_t processStartCar(Map &cityMap, Car* car);
+    int8_t processStartCar(Map &cityMap, Car* car, bool isPreset);
 
     // int8_t outputCarToRoad();
 
