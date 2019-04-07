@@ -8,6 +8,7 @@
 #include <cassert> 
 #include <vector>
 #include <map>
+#include "param.h"
 
 using namespace std;
 /*
@@ -23,7 +24,13 @@ class Map
 {
 public:
     /*Map的构造函数*/
-    Map(string roadfile, string crossfile, string presetAnswerPath);
+#if TEST_ANSWER
+    Map(string carfile, string roadfile, string crossfile, string presetAnswerPath, string AnswerPath);
+#else
+    Map(string carfile, string roadfile, string crossfile, string presetAnswerPath);
+#endif
+
+    void readcars(string file);
 
     /*读入road.txt*/
     void readroad(string file);
@@ -42,9 +49,15 @@ public:
 
     void readPresetAnswer(string file);
 
+    vector<vector<int>> cars;
     vector<vector<int>> road;
     vector<vector<int>> cross;
     vector<vector<int>> presetcar;
+#if TEST_ANSWER
+    void readAnswer(string file);
+	vector<vector<int>> answer;
+#else
+#endif
     vector<vector<MAP_INT>> mymap;
 };
 

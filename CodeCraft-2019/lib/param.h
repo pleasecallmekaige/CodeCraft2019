@@ -7,5 +7,6 @@
 
 #define  MYMAP_EXTEND_COE  3  //道路评价系数
 
+#define  TEST_ANSWER  1
 
 #endif

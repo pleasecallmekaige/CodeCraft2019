@@ -134,15 +134,8 @@ public:
         return Cross::crosses[_curCross];
     }
 
-    static void readCars(string file, Map &cityMap);
-
     /*初始化所有车辆*/
     static void initCars(string file, Map &cityMap);
-
-    /*车辆调度函数,控制车辆的启动*/
-    static void Scheduler(Map &cityMap);
-
-    static void driveCarInitList(bool flag, Map& cityMap);
 
     int getScore(int distance, int _curCross, int nextRoadId);
 

@@ -6,14 +6,44 @@
 #include <algorithm>
 
 bool comp(vector<int> i, vector<int> j){return i[0]<j[0];}
-
-Map::Map(string roadfile, string crossfile, string presetAnswerPath)
+#if TEST_ANSWER
+Map::Map(string carfile, string roadfile, string crossfile, string presetAnswerPath, string AnswerPath)
+#else
+Map::Map(string carfile, string roadfile, string crossfile, string presetAnswerPath)
+#endif
 {
+    readcars(carfile);
     readroad(roadfile);
     readcross(crossfile);
     readPresetAnswer(presetAnswerPath);
+#if TEST_ANSWER
+    readAnswer(AnswerPath);
+#else
+#endif	
     sort(cross.begin(),cross.end(),comp);
     sort(road.begin(),road.end(),comp);
+}
+
+void Map::readcars(string file)
+{
+    ifstream infile; 
+    infile.open(file.data());   //将文件流对象与文件连接起来 
+    assert(infile.is_open());   //若失败,则输出错误消息,并终止程序运行
+	string s;
+    string t;
+    int result;
+	getline(infile,s);
+    while(getline(infile,s))
+    {
+		stringstream input(s.substr(1,s.length()-2));
+        vector<int> res;
+		while(input>>result){
+			input>>t;
+			res.push_back(result);
+		}
+		cars.push_back(res);
+    }
+    infile.close();             //关闭文件输入流
 }
 
 void Map::readroad(string file)
@@ -84,6 +114,31 @@ void Map::readPresetAnswer(string file)
     }
     infile.close();             //关闭文件输入流 
 }
+#if TEST_ANSWER
+void Map::readAnswer(string file)
+{
+    ifstream infile; 
+    infile.open(file.data());   //将文件流对象与文件连接起来 
+    assert(infile.is_open());   //若失败,则输出错误消息,并终止程序运行 
+	int result;
+    string s;
+	char t;
+	//getline(infile,s);  //#
+    while(getline(infile,s))
+    {
+		stringstream input(s.substr(1,s.length()-2));
+		vector<int> res;
+		while(input>>result){
+			input>>t;
+			res.push_back(result);
+		}
+		answer.push_back(res);
+    }
+    infile.close();             //关闭文件输入流 
+}
+#else
+#endif
+
 
 void Map::initMap(Map & cityMap, map<int, Cross*>& crosses)
 {

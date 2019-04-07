@@ -11,9 +11,13 @@
 #include "cross.h"
 #include "road.h"
 #include "car.h"
+#include "param.h"
+#include "scheduler.h"
 
 using namespace std;
-uint32_t turntime = 1;
+uint32_t turntime = 0;
+uint32_t PriCarallAriveEnd = 0;
+int ePlaneTimeOfPriCars = 0;
 
 void writeAnswer(string file);
 
@@ -33,8 +37,11 @@ int main(int argc, char *argv[])
 	std::string presetAnswerPath(argv[4]);
 	std::string answerPath(argv[5]);
 
-
-	Map cityMap(roadPath,crossPath,presetAnswerPath);
+#if TEST_ANSWER
+	Map cityMap(carPath, roadPath, crossPath, presetAnswerPath, answerPath);
+#else
+	Map cityMap(carPath,roadPath,crossPath,presetAnswerPath);
+#endif
 	Road::initRoads(cityMap);
 	Cross::initCrosses(cityMap);
 	Map::initMap(cityMap, Cross::crosses);
@@ -43,34 +50,34 @@ int main(int argc, char *argv[])
 	Car::numStop = Car::numALL;//所有未启动的车
  
 
-	//mySDL::init();//可视化初始化
 
-	do
+	if(!Scheduler(cityMap))
 	{
-		Car::Scheduler(cityMap);
-		/*路上的车辆加入cross*/
-		/*路口处理车辆*/
-		/*路口的车辆出来到路上*/
-		/*启动车辆加到路口*/
-		cout<<"turntime:"<<turntime<<"  numRuning:"<<Car::numRuning
-		<<"  "<<"numStop:"<<Car::numStop<<"  numEnd:"<<Car::numEnd<<endl;
-		++turntime;
-		//mySDL::display();//可视化
-	}while(Car::numRuning != 0 || Car::numStop !=0);
-	uint64_t num=0;
-    for (size_t i=0u; i<Car::cars.size(); ++i )
-    {
-		Car* p = Car::cars[i];
-		num+=p->_numOfSchedule;
+		cout<<"dead lock!"<<endl;
+		exit(1);
 	}
-    for (size_t i=0u; i<Car::pricars.size(); ++i )
-    {
-		Car* p = Car::pricars[i];
-		num+=p->_numOfSchedule;
-	}
-	cout<<"allcarsturntime: "<<num<<endl;
-
-	writeAnswer(answerPath);	
+	int a = getA(cityMap);
+	// uint64_t num=0;
+    // for (size_t i=0u; i<Car::cars.size(); ++i )
+    // {
+	// 	Car* p = Car::cars[i];
+	// 	num+=p->_numOfSchedule;
+	// }
+    // for (size_t i=0u; i<Car::pricars.size(); ++i )
+    // {
+	// 	Car* p = Car::pricars[i];
+	// 	num+=p->_numOfSchedule;
+	// }
+// 	specialResult is Result{scheduleTime = 207, allScheduleTime = 89895}
+// originResult is Result{scheduleTime = 613, allScheduleTime = 2732618}
+// CodeCraftJudge end schedule time is 909 allScheduleTime is 3443372
+	cout<<"specialResult is Result{scheduleTime = "<<PriCarallAriveEnd - ePlaneTimeOfPriCars<<endl;
+	cout<<"originResult is Result{scheduleTime = "<<turntime<<endl;
+	cout<<"CodeCraftJudge end schedule time is "<<turntime+a<<endl;
+#if TEST_ANSWER
+#else
+	writeAnswer(answerPath);
+#endif	
 	return 0;
 }
 

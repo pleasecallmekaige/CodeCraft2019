@@ -7,6 +7,7 @@
 #include <time.h>
 
 extern uint32_t turntime;
+extern uint32_t PriCarallAriveEnd;
 /*
 (车辆id，始发地、目的地、最高速度、出发时间)
  */
@@ -62,6 +63,8 @@ void Car::setStatusEnd()
     --numRuning;
     ++numEnd;
     _numOfSchedule = turntime - _planeTime;
+    if(_priority == 1 && turntime>PriCarallAriveEnd)
+        PriCarallAriveEnd = turntime;
 }
 void Car::setStatusStop()//用于车子启动失败
 {
@@ -114,7 +117,11 @@ void Car::searchPath(Map &cityMap)
     int resRoad = -1;
     if(_nextRoad != _atRoad)return;//每个路口第一次寻路的时候_nextRoad == _atRoad的，这里是保证每个路口不寻路两次
     nextRoad = cityMap.cross[Cross::crosses[_curCross]->_index];
+#if TEST_ANSWER
+    if(1)
+#else
     if(_preset == 1)//处理预置车辆的寻路
+#endif
     {
         if(_atRoad == NULL)
             _nextRoad = Road::roads[_answerPath[0]];
@@ -200,149 +207,38 @@ int Car::getScore(int distance, int _curCross, int nextRoadId)
     return a;
 }
 
-void updataMap(Map& cityMap)
-{
-    for(size_t i=0u; i<cityMap.road.size(); ++i)//更新路况
-    {
-        Road::roads[cityMap.road[i][0]]->updateRoadCondition(cityMap);
-    }
-    cityMap.updateMatrix();
-}
-
-void Car::driveCarInitList(bool flag, Map& cityMap)
-{
-    if(flag == true)
-    {
-        Road::runAllCarInInitList(cityMap);
-    }
-    else
-    {
-        /*起步车辆最后加入入口*/
-        for (size_t i=0u; i<cars.size(); ++i )//把启动车辆加入入口
-        {
-            Car* p = cars[i];
-            // if(i>0)//保证id升序处理
-            //     assert(cars[i]->_id>cars[i-1]->_id);
-            if(turntime >= p->_planeTime && p->getStatus() == isStop && (Car::numRuning < INT_LIMIT_NUM_CAR || p->_preset == 1))
-            {
-                p->setStatusRuning();
-                if(p->_preset == 0)
-                {
-                    if(Cross::crosses[p->_from]->processStartCar(cityMap, p, false)==1)
-                    {
-                        p->setStartTime(turntime);
-                    }
-                }
-                else
-                {
-                    if(Cross::crosses[p->_from]->processStartCar(cityMap, p, true)==1)
-                    {
-                        p->setStartTime(turntime);
-                    }
-                }
-            }
-        }
-    }
-}
-
-/*static function*/
-void Car::Scheduler(Map &cityMap)
-{
-    for(size_t i=0u; i<cityMap.road.size(); ++i)//调度路上的车
-    {
-        assert(Road::roads[cityMap.road[i][0]]->_numOfWaitCar >= 0);
-        Road::roads[cityMap.road[i][0]]->driveAllCarJustOnRoadToEndStatus();
-    }
-    Car::driveCarInitList(true, cityMap);
-    while (Car::numWait != 0)
-    {
-        for (size_t i=0u; i<cityMap.cross.size(); ++i )//调度所有路口，通过路口把路上所有优先级最高的车先调度
-        {
-            if(i>0 )//保证id升序处理
-                assert(Cross::crosses[cityMap.cross[i][0]]->_id > Cross::crosses[cityMap.cross[i-1][0]]->_id);
-            Cross::crosses[cityMap.cross[i][0]]->processEachCross(cityMap);              
-        }
-        //cout<<"WaitCar: "<<Car::numWait<<endl;
-    }
-    
-    updataMap(cityMap);
-    driveCarInitList(true, cityMap);
-    driveCarInitList(false, cityMap);
-
-    updataMap(cityMap);
-    // cityMap.updateMatrix();
-    /*需要善后处理的
-    p->_isEndStatusOnRoad = false;//每次时间片完都把所有的车设为等待；
-    每个路口的_processNum要清0
-    */
-    for (size_t i=0u; i<cars.size(); ++i )
-    {
-        Car* p = cars[i];
-        if(p->getStatus() == isRuning) 
-        {
-            assert(p->_atRoad != NULL);
-            p->_isEndStatusOnRoad = false;//每次时间片完都把所有的车设为等待；
-            p->getAtRoad()->addNumOfWaiteCar();//每次处理完都把车的状态设为等待
-        }
-    }
-    for (size_t i=0u; i<pricars.size(); ++i )
-    {
-        Car* p = pricars[i];
-        if(p->getStatus() == isRuning) 
-        {
-            assert(p->_atRoad != NULL);
-            p->_isEndStatusOnRoad = false;//每次时间片完都把所有的车设为等待；
-            p->getAtRoad()->addNumOfWaiteCar();//每次处理完都把车的状态设为等待
-        }
-    }
-    for (size_t i=0u; i<cityMap.cross.size(); ++i )
-    {
-        Cross::crosses[cityMap.cross[i][0]]->_processNum = 0;
-    }
-}
-
 bool comp1(Car* i, Car* j){return i->_id < j->_id;}
 bool comp2(Car* i, Car* j){return i->_planeTime < j->_planeTime;}
 /*static function*/
 void Car::initCars(string file, Map &cityMap)//这里排序可能会造成发车不能按ID升序发车
 {
-	readCars(file, cityMap);
-    sort(cars.begin(),cars.end(),comp1);
-    sort(cars.begin(),cars.end(),comp2);
-    sort(pricars.begin(),pricars.end(),comp1);
-    sort(pricars.begin(),pricars.end(),comp2);
-}
-    // qiuckSort(cars, cars.size());
-    // srand((unsigned)time(0));  
-    // for (size_t i=0u; i<cars.size(); ++i )
-    // {
-    //     cars[i]->_startTime = cars[i]->_startTime + (int)TIME_MAX_VALUE * ((float)i/cars.size());
-    // }
-
-/*读入car.txt文件 static function*/
-void Car::readCars(string file, Map &cityMap)
-{
-    ifstream infile; 
-    infile.open(file.data());   //将文件流对象与文件连接起来 
-    assert(infile.is_open());   //若失败,则输出错误消息,并终止程序运行 
-	int result;
-    string s;
-	string t;
     Car * car;
-	getline(infile,s);  //#
-    while(getline(infile,s))
+    for(size_t i=0u; i<cityMap.cars.size(); ++i)
     {
-		stringstream input(s.substr(1,s.length()-2));
-		vector<int> res;
-		while(input>>result){
-			input>>t;
-			res.push_back(result);
-		}
-        car = new Car(res);
+        car = new Car(cityMap.cars[i]);
         if(car->_priority == 1)
             pricars.push_back(car);
         else
 		    cars.push_back(car);
+#if TEST_ANSWER
+        if(car->_preset == 0)
+        {
+            for(size_t i=0u; i<cityMap.answer.size(); ++i)
+            {
+                if(cityMap.answer[i][0] == (int)car->_id)
+                {
+                    for(size_t j=2u; j<cityMap.answer[i].size(); ++j)
+                    {
+                        car->_answerPath.push_back(cityMap.answer[i][j]);
+                    }
+                    goto out;
+                }
+            }  
+            assert(0);
+            out:;
+        }
+#else
+#endif
         if(car->_preset == 1)
         {
             car->_planeTime = presetCars[car->_id][1];//预置车的出发时间
@@ -352,5 +248,9 @@ void Car::readCars(string file, Map &cityMap)
             }
         }
     }
-    infile.close();            //关闭文件输入流 
+
+    sort(cars.begin(),cars.end(),comp1);
+    sort(cars.begin(),cars.end(),comp2);
+    sort(pricars.begin(),pricars.end(),comp1);
+    sort(pricars.begin(),pricars.end(),comp2);
 }
