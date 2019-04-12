@@ -46,6 +46,9 @@ public:
     std::vector<std::vector<Car *>> carsInRoadFromTo;//存放当前车道上正向行驶的车id
     std::vector<std::vector<Car *>> carsInRoadToFrom;//存放当前道路上反向行驶的车id
 
+    vector<Car*> startFromTo;
+    vector<Car*> startToFrom;
+
     /*Road的构造函数*/
     Road(vector<int>& oneRoad, int index);
 
@@ -58,24 +61,16 @@ public:
 
     void delNumOfWaiteCar();
 
-    // void addNumOfCarInRoads()
-    // {
-    //     ++numOfCarInRoads;    
-    // }
-
-    // void outNumOfCarInRoads()
-    // {
-    //     --numOfCarInRoads;
-    // }
-
     /*static function*/
-    static void initRoads(Map &cityMap);
+    static void initRoads(Map &cityMap);    
 
-    static void runAllCarInInitList(Map& cityMap);
+    static void runCarInInitList(Map& cityMap);
 
     void driveOneChannel(vector<Car *>& oneChannel);
 
     void driveAllCarJustOnRoadToEndStatus();//处理在道路上的车
+
+    void startCar(int curCross, bool flag);
 
     /*获取每个road的优先级第一的车，没有可出来的车就返回NULL*/
     Car* getFirstCar(int16_t curCross);
@@ -90,6 +85,8 @@ public:
     int canAddToButton(const Car* car);
 
     void addCarToRoad(Car * car, int lane); //将路口传来的车加到当前道路上
+
+    void addCarToStart(Car* car);
 
     void outCarToRoad(Car * car);//处理行使出去的车；
 

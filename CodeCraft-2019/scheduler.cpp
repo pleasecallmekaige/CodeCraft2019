@@ -20,43 +20,23 @@ void updataMap(Map& cityMap)
 
 bool isFinish()
 {
-    if(Car::numRuning == 0 && Car::numStop ==0)
+    if(Car::numRuning == 0 && Car::numStop ==0 && Car::numStart == 0)
         return true;
     else
         return false;   
 }
 
-void driveJustCurrentRoad();//道路内车辆的标定与驱动
 
 void driveCarInitList(bool flag, Map& cityMap)
 {
-    Road::runAllCarInInitList(cityMap);
+    Road::runCarInInitList(cityMap);
     if(flag == false)
     {
-        /*起步车辆最后加入入口*/
-        for (size_t i=0u; i<Car::cars.size(); ++i )//把启动车辆加入入口
+        for(size_t i=0u; i<cityMap.road.size(); ++i)//调度路上的车
         {
-            Car* p = Car::cars[i];
-            // if(i>0)//保证id升序处理
-            //     assert(cars[i]->_id>cars[i-1]->_id);
-            if(turntime >= p->_planeTime && p->getStatus() == isStop && (Car::numRuning < INT_LIMIT_NUM_CAR || p->_preset == 1))
-            {
-                p->setStatusRuning();
-                if(p->_preset == 0)
-                {
-                    if(Cross::crosses[p->_from]->processStartCar(cityMap, p, false)==1)
-                    {
-                        p->setStartTime(turntime);
-                    }
-                }
-                else
-                {
-                    if(Cross::crosses[p->_from]->processStartCar(cityMap, p, true)==1)
-                    {
-                        p->setStartTime(turntime);
-                    }
-                }
-            }
+            Road * proad = Road::roads[cityMap.road[i][0]];
+            proad->startCar(proad->_from,false);
+            proad->startCar(proad->_to,false);
         }
     }
 }
@@ -88,15 +68,56 @@ bool driveCarInWaitStatus(Map &cityMap)
     return true;
 }
 
+void creatCarStartVector(Map& cityMap)
+{
+    int limit =  INT_LIMIT_NUM_CAR;
+    if(turntime<100)limit = INT_LIMIT_NUM_CAR - 700;
+    else limit = INT_LIMIT_NUM_CAR;
+    for (size_t i=0u; i<Car::cars.size(); ++i )
+    {
+        Car* p = Car::cars[i];
+        if(turntime >= p->_startTime && p->getStatus() == isStop && (Car::numRuning+Car::numStart < limit || p->_preset == 1)) 
+        {
+            if(p->getCurCross()->addStartCar(cityMap,p) == 1)//把车加入到发车队
+            {
+                p->setStartTime(turntime);
+                p->setStatusStart();
+            }
+        }
+    }
+    for (size_t i=0u; i<Car::pricars.size(); ++i )
+    {
+        Car* p = Car::pricars[i];
+        if(turntime >= p->_startTime && p->getStatus() == isStop && (Car::numRuning+Car::numStart < limit + 200 || p->_preset == 1)) 
+        {
+            if(p->getCurCross()->addStartCar(cityMap,p) == 1)//把车加入到发车队
+            {
+                p->setStartTime(turntime);
+                p->setStatusStart();
+            }
+        }
+    }
+    for(size_t i=0u; i<cityMap.road.size(); ++i)//排序
+    {
+        assert(Road::roads[cityMap.road[i][0]]->_numOfWaitCar >= 0);
+        Road* proad = Road::roads[cityMap.road[i][0]];
+        stable_sort(proad->startFromTo.begin(), proad->startFromTo.end(), [](Car* a,Car* b){return a->_id < b->_id;});
+        stable_sort(proad->startToFrom.begin(), proad->startToFrom.end(), [](Car* a,Car* b){return a->_id < b->_id;});
+        stable_sort(proad->startFromTo.begin(), proad->startFromTo.end(), [](Car* a,Car* b){return a->_startTime < b->_startTime;});
+        stable_sort(proad->startToFrom.begin(), proad->startToFrom.end(), [](Car* a,Car* b){return a->_startTime < b->_startTime;});
+        stable_sort(proad->startFromTo.begin(), proad->startFromTo.end(), [](Car* a,Car* b){return a->_priority > b->_priority;});
+        stable_sort(proad->startToFrom.begin(), proad->startToFrom.end(), [](Car* a,Car* b){return a->_priority > b->_priority;});
+    }
+}
+
 /*static function*/
 bool Scheduler(Map &cityMap)
 {
     while(true)
     {
-        ++turntime;
+        creatCarStartVector(cityMap);
         driveJustCurrentRoad(cityMap);
         driveCarInitList(true, cityMap);
-
         if(!driveCarInWaitStatus(cityMap))
         {
             return false;
@@ -135,17 +156,18 @@ bool Scheduler(Map &cityMap)
         {
             Cross::crosses[cityMap.cross[i][0]]->_processNum = 0;
         }
-		cout<<"turntime:"<<turntime<<"  numRuning:"<<Car::numRuning
-		<<"  "<<"numStop:"<<Car::numStop<<"  numEnd:"<<Car::numEnd<<endl;
+		// cout<<"turntime:"<<turntime<<"  numRuning:"<<Car::numRuning
+		// <<"  "<<"numStop:"<<Car::numStop<<"  numEnd:"<<Car::numEnd<<endl;
         if(isFinish())
         {
             break;
         }
+        ++turntime;
     }
     return true;
 }
 
-int getA(Map &cityMap)
+double getA(Map &cityMap)
 {
     set<int> tmpset;
     int numOfCar=Car::cars.size() + Car::pricars.size();//车辆总数
@@ -190,6 +212,6 @@ int getA(Map &cityMap)
     float l5 = (float)tofbOfCars/tofbOfPriCars;
 
     float a = l1*0.05 + (l2+l3+l4+l5)*0.2375;
-    int res = (PriCarallAriveEnd - ePlaneTimeOfPriCars)*a;
-    return res;
+    //int res = (PriCarallAriveEnd - ePlaneTimeOfPriCars)*a;
+    return a;
 }

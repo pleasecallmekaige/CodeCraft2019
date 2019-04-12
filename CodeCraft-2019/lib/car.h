@@ -17,7 +17,7 @@ using namespace std;
 
 enum TURN {isRight=0, isLeft=1, isForward=2, none=-1};
 
-enum RUNSTATUS {isStop=0, isRuning=1, isEnd=2};
+enum RUNSTATUS {isStop=0, isRuning=1, isEnd=2, isStart=3};
 
 class Road;
 class Cross;
@@ -38,6 +38,10 @@ public:
 
     /*已经上路的车数量*/
     static int numRuning;
+
+    static int numStart;
+
+    static int numPresetAndPriRuning;
 
     /*已经到达目的地车数量*/
     static int numEnd;
@@ -115,6 +119,8 @@ public:
     void setStatusEnd();
 
     void setStatusStop();//用于车子启动失败
+
+    void setStatusStart();
 
     void setStartTime(uint32_t turntime)
     {

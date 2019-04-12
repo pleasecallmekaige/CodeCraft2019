@@ -23,9 +23,11 @@ map<int, vector<int>> Car::presetCars;
 
 int Car::numStop = 0;
 int Car::numRuning = 0;
+int Car::numStart = 0;
 int Car::numEnd = 0;
 int Car::numALL = 0;
 int Car::numWait = 0;
+int Car::numPresetAndPriRuning = 0;
 
 Car::Car(std::vector<int> &res)//res就是car.txt的一行
        :_id(res[0]),
@@ -51,11 +53,19 @@ Car::Car(std::vector<int> &res)//res就是car.txt的一行
     {     
     }
 
+void Car::setStatusStart()
+{
+    _status = isStart;
+    ++numStart;
+    --numStop;
+}
 void Car::setStatusRuning()
 {
     _status = isRuning;
+    if(_preset == 1 || _priority == 1)
+        ++numPresetAndPriRuning;
     ++numRuning;
-    --numStop;
+    --numStart;
 }
 void Car::setStatusEnd()
 {
@@ -63,6 +73,8 @@ void Car::setStatusEnd()
     --numRuning;
     ++numEnd;
     _numOfSchedule = turntime - _planeTime;
+    if(_preset == 1 || _priority == 1)
+        --numPresetAndPriRuning;
     if(_priority == 1 && turntime>PriCarallAriveEnd)
         PriCarallAriveEnd = turntime;
 }
@@ -95,6 +107,7 @@ void Car::moveToNextRoad(int lane)
     Road* patRoad = _atRoad;
     vector<vector<Car*>>& fromVector = (_curCross==patRoad->_from)?patRoad->carsInRoadToFrom:patRoad->carsInRoadFromTo;
     // vector<vector<Car*>>& toVector = (_curCross==pnextRoad->_from)?pnextRoad->carsInRoadFromTo:pnextRoad->carsInRoadToFrom;
+    
     assert(fromVector[this->_atChannel].front() == this);
     patRoad->outCarToRoad(this); 
     patRoad->driveOneChannel(fromVector[this->_atChannel]);  
@@ -220,6 +233,14 @@ void Car::initCars(string file, Map &cityMap)//这里排序可能会造成发车
             pricars.push_back(car);
         else
 		    cars.push_back(car);
+        if(car->_preset == 1)
+        {
+            car->_startTime = presetCars[car->_id][1];//预置车的出发时间
+            for(size_t i=2u; i<presetCars[car->_id].size(); ++i)
+            {
+                car->_answerPath.push_back(presetCars[car->_id][i]);
+            }
+        }
 #if TEST_ANSWER
         if(car->_preset == 0)
         {
@@ -227,30 +248,23 @@ void Car::initCars(string file, Map &cityMap)//这里排序可能会造成发车
             {
                 if(cityMap.answer[i][0] == (int)car->_id)
                 {
+                    car->_startTime = cityMap.answer[i][1];
                     for(size_t j=2u; j<cityMap.answer[i].size(); ++j)
                     {
                         car->_answerPath.push_back(cityMap.answer[i][j]);
                     }
                     goto out;
                 }
-            }  
+            }
             assert(0);
             out:;
         }
 #else
 #endif
-        if(car->_preset == 1)
-        {
-            car->_planeTime = presetCars[car->_id][1];//预置车的出发时间
-            for(size_t i=2u; i<presetCars[car->_id].size(); ++i)
-            {
-                car->_answerPath.push_back(presetCars[car->_id][i]);
-            }
-        }
     }
 
     sort(cars.begin(),cars.end(),comp1);
-    sort(cars.begin(),cars.end(),comp2);
+    // stable_sort(cars.begin(),cars.end(),comp2);
     sort(pricars.begin(),pricars.end(),comp1);
-    sort(pricars.begin(),pricars.end(),comp2);
+    // stable_sort(pricars.begin(),pricars.end(),comp2);
 }

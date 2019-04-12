@@ -4,6 +4,6 @@
 
 bool Scheduler(Map &cityMap);
 
-int getA(Map &cityMap);
+double getA(Map &cityMap);
 
 #endif

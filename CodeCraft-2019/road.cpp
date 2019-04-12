@@ -257,20 +257,75 @@ float Road::getJams(int _curCross)
     return jams;
 }
 
-/*static function*/
-void Road::runAllCarInInitList(Map& cityMap)
+
+
+// void Road::runCarInInitList(int curCross)
+// {
+//     vector<Car*> &v = (curCross == _to)?startFromTo:startToFrom;
+//     for (size_t i=0u; i<v.size(); ++i )//把启动车辆加入入口
+//     {
+//         Car* p = v[i];
+//         if(turntime >= p->_planeTime && p->getStatus() == isStop && (Car::numRuning < INT_LIMIT_NUM_CAR || p->_preset == 1))
+//         {
+//             p->setStatusRuning();
+//             if(Cross::crosses[p->_from]->processStartCar(cityMap, p, p->_preset == 1)==1)
+//             {
+//                 // p->setStartTime(turntime);
+//             }
+//         }
+//     }
+// }
+
+void Road::addCarToStart(Car* car)
 {
-    for (size_t i=0u; i<Car::pricars.size(); ++i )//把启动车辆加入入口
+    assert(car->_curCross == _from || car->_curCross == _to);
+    vector<Car*>&v = (car->_curCross == _from)?startFromTo:startToFrom;
+    v.push_back(car);
+}
+
+void Road::startCar(int curCross, bool flag)
+{
+    vector<Car*> &v = (curCross == _to)?startFromTo:startToFrom;
+    for(size_t i=0u; i<v.size(); ++i)
     {
-        Car* p = Car::pricars[i];
-        if(turntime >= p->_planeTime && p->getStatus() == isStop && (Car::numRuning < INT_LIMIT_NUM_CAR || p->_preset == 1))
+        Car* car = v[i];
+        if(flag)
         {
-            p->setStatusRuning();
-            if(Cross::crosses[p->_from]->processStartCar(cityMap, p, p->_preset == 1)==1)
+            if(car->_priority == 1 && car->getStatus() == isStart)
             {
-                p->setStartTime(turntime);
+                int lane = car->getNextRoad()->canAddToButton(car);
+                if(lane == -1)continue;
+                assert(lane!=-2);
+                if(lane == -3)break;
+                assert(lane >= 0);
+                car->getNextRoad()->addCarToRoad(car, lane);
+                car->setStatusRuning();
             }
         }
+        else
+        {
+            if(car->getStatus() == isStart)
+            {
+                int lane = car->getNextRoad()->canAddToButton(car);
+                if(lane == -1)continue;
+                assert(lane!=-2);
+                if(lane == -3)break;
+                assert(lane >= 0);
+                car->getNextRoad()->addCarToRoad(car, lane);
+                car->setStatusRuning();
+            }
+        }
+    }
+}
+
+/*static function*/
+void Road::runCarInInitList(Map& cityMap)
+{
+    for(size_t i=0u; i<cityMap.road.size(); ++i)
+    {
+        Road * proad = Road::roads[cityMap.road[i][0]];
+        proad->startCar(proad->_from,true);
+        proad->startCar(proad->_to,true);
     }
 }
 

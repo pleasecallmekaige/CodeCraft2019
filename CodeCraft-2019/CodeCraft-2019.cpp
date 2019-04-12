@@ -15,7 +15,7 @@
 #include "scheduler.h"
 
 using namespace std;
-uint32_t turntime = 0;
+uint32_t turntime = 1;
 uint32_t PriCarallAriveEnd = 0;
 int ePlaneTimeOfPriCars = 0;
 
@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
 	Car::initCars(carPath, cityMap);	
 	Car::numALL = Car::cars.size() + Car::pricars.size();
 	Car::numStop = Car::numALL;//所有未启动的车
- 
+
 
 
 	if(!Scheduler(cityMap))
@@ -56,24 +56,30 @@ int main(int argc, char *argv[])
 		cout<<"dead lock!"<<endl;
 		exit(1);
 	}
-	int a = getA(cityMap);
-	// uint64_t num=0;
-    // for (size_t i=0u; i<Car::cars.size(); ++i )
-    // {
-	// 	Car* p = Car::cars[i];
-	// 	num+=p->_numOfSchedule;
-	// }
-    // for (size_t i=0u; i<Car::pricars.size(); ++i )
-    // {
-	// 	Car* p = Car::pricars[i];
-	// 	num+=p->_numOfSchedule;
-	// }
+	double a = getA(cityMap);
+	uint64_t num=0;
+	uint64_t num2=0;
+    for (size_t i=0u; i<Car::cars.size(); ++i )
+    {
+		Car* p = Car::cars[i];
+		num+=p->_numOfSchedule;
+		if(p->_priority == 1)
+			num2+=p->_numOfSchedule;
+	}
+    for (size_t i=0u; i<Car::pricars.size(); ++i )
+    {
+		Car* p = Car::pricars[i];
+		num+=p->_numOfSchedule;
+		if(p->_priority == 1)
+			num2+=p->_numOfSchedule;
+	}
 // 	specialResult is Result{scheduleTime = 207, allScheduleTime = 89895}
 // originResult is Result{scheduleTime = 613, allScheduleTime = 2732618}
 // CodeCraftJudge end schedule time is 909 allScheduleTime is 3443372
-	cout<<"specialResult is Result{scheduleTime = "<<PriCarallAriveEnd - ePlaneTimeOfPriCars<<endl;
-	cout<<"originResult is Result{scheduleTime = "<<turntime<<endl;
-	cout<<"CodeCraftJudge end schedule time is "<<turntime+a<<endl;
+	cout<<"a = "<<a<<endl;
+	cout<<"specialResult is Result{scheduleTime = "<<PriCarallAriveEnd - ePlaneTimeOfPriCars<<", allScheduleTime = "<<num2<<endl;
+	cout<<"originResult is Result{scheduleTime = "<<turntime<<", allScheduleTime = "<<num<<endl;
+	cout<<"CodeCraftJudge end schedule time is "<<(int)(turntime+a*(PriCarallAriveEnd - ePlaneTimeOfPriCars))<<endl;
 #if TEST_ANSWER
 #else
 	writeAnswer(answerPath);
