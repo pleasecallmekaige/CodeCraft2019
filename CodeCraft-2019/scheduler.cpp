@@ -71,12 +71,11 @@ bool driveCarInWaitStatus(Map &cityMap)
 void creatCarStartVector(Map& cityMap)
 {
     int limit =  INT_LIMIT_NUM_CAR;
-    if(turntime<100)limit = INT_LIMIT_NUM_CAR - 700;
-    else limit = INT_LIMIT_NUM_CAR;
+    limit = INT_LIMIT_NUM_CAR - Car::numPresetAndPriRuning;
     for (size_t i=0u; i<Car::cars.size(); ++i )
     {
         Car* p = Car::cars[i];
-        if(turntime >= p->_startTime && p->getStatus() == isStop && (Car::numRuning+Car::numStart < limit || p->_preset == 1)) 
+        if(turntime >= p->_startTime && p->getStatus() == isStop && (Car::numRuning - Car::numPresetAndPriRuning + Car::numStart < limit || p->_preset == 1)) 
         {
             if(p->getCurCross()->addStartCar(cityMap,p) == 1)//把车加入到发车队
             {
@@ -88,7 +87,7 @@ void creatCarStartVector(Map& cityMap)
     for (size_t i=0u; i<Car::pricars.size(); ++i )
     {
         Car* p = Car::pricars[i];
-        if(turntime >= p->_startTime && p->getStatus() == isStop && (Car::numRuning+Car::numStart < limit + 200 || p->_preset == 1)) 
+        if(turntime >= p->_startTime && p->getStatus() == isStop && (Car::numRuning - Car::numPresetAndPriRuning + Car::numStart < limit + 100 || p->_preset == 1)) 
         {
             if(p->getCurCross()->addStartCar(cityMap,p) == 1)//把车加入到发车队
             {
@@ -157,7 +156,7 @@ bool Scheduler(Map &cityMap)
             Cross::crosses[cityMap.cross[i][0]]->_processNum = 0;
         }
 		// cout<<"turntime:"<<turntime<<"  numRuning:"<<Car::numRuning
-		// <<"  "<<"numStop:"<<Car::numStop<<"  numEnd:"<<Car::numEnd<<endl;
+		// <<"  "<<"numStop:"<<Car::numStop<<"  numEnd:"<<Car::numEnd<<"  numPreset:"<<Car::numPresetAndPriRuning<<endl;
         if(isFinish())
         {
             break;

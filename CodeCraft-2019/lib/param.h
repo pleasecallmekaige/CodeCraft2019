@@ -1,7 +1,7 @@
 #ifndef _PARAM_H_
 #define _PARAM_H_
 
-#define  INT_LIMIT_NUM_CAR  2600 //限制车的数量
+#define  INT_LIMIT_NUM_CAR  3300 //限制车的数量
 
 #define  FLOAT_STARTCAR_JAM  0.14f //限制发车路段的拥堵情况
 

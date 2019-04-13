@@ -63,7 +63,7 @@ void Car::setStatusStart()
 void Car::setStatusRuning()
 {
     _status = isRuning;
-    if(_preset == 1 || _priority == 1)
+    if(_preset == 1)
         ++numPresetAndPriRuning;
     ++numRuning;
     --numStart;
@@ -74,7 +74,7 @@ void Car::setStatusEnd()
     --numRuning;
     ++numEnd;
     _numOfSchedule = turntime - _planeTime;
-    if(_preset == 1 || _priority == 1)
+    if(_preset == 1)
         --numPresetAndPriRuning;
     if(_priority == 1 && turntime>PriCarallAriveEnd)
         PriCarallAriveEnd = turntime;
