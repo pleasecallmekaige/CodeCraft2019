@@ -3,6 +3,7 @@
 #include "road.h"
 #include "param.h"
 #include <algorithm>
+#include <set>
 #include <stdlib.h>
 #include <time.h>
 
@@ -226,6 +227,13 @@ bool comp2(Car* i, Car* j){return i->_planeTime < j->_planeTime;}
 void Car::initCars(string file, Map &cityMap)//这里排序可能会造成发车不能按ID升序发车
 {
     Car * car;
+    set<int> carOf10persent;
+    int numof10persent = cityMap.presetcar.size()/10;
+    sort(cityMap.presetcar.begin(),cityMap.presetcar.end(),[](vector<int>a, vector<int>b){return a[1]>b[1];});
+    for(int i=0; i<numof10persent; ++i)
+    {  
+        carOf10persent.insert(cityMap.presetcar[i][0]);
+    } 
     for(size_t i=0u; i<cityMap.cars.size(); ++i)
     {
         car = new Car(cityMap.cars[i]);
@@ -235,6 +243,11 @@ void Car::initCars(string file, Map &cityMap)//这里排序可能会造成发车
 		    cars.push_back(car);
         if(car->_preset == 1)
         {
+            if(carOf10persent.count(car->_id)>0)
+            {
+                car->_preset = 0;
+                continue;
+            }
             car->_startTime = presetCars[car->_id][1];//预置车的出发时间
             for(size_t i=2u; i<presetCars[car->_id].size(); ++i)
             {
